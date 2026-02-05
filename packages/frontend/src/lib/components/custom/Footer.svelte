@@ -4,23 +4,24 @@
 	import { Info } from 'lucide-svelte';
 
 	export let currentVersion: string;
-	export let newVersionInfo: { version: string; description: string; url: string } | null = null;
+	export let upstreamUpdateInfo: { version: string; description: string; url: string } | null =
+		null;
 </script>
 
 <footer class="bg-muted py-6 md:py-0">
 	<div class="container mx-auto flex flex-col items-center justify-center gap-4 py-8 md:flex-row">
 		<div class="flex flex-col items-center gap-2">
-			{#if newVersionInfo}
+			{#if upstreamUpdateInfo}
 				<Alert.Root>
 					<Alert.Title class="flex items-center gap-2">
 						<Info class="h-4 w-4" />
-						{$t('app.components.footer.new_version_available')}
+						{$t('app.components.footer.upstream_update_available')}
 						<a
-							href={newVersionInfo.url}
+							href={upstreamUpdateInfo.url}
 							target="_blank"
 							class=" text-muted-foreground underline"
 						>
-							{newVersionInfo.description}
+							v{upstreamUpdateInfo.version}
 						</a>
 					</Alert.Title>
 				</Alert.Root>

@@ -6,8 +6,14 @@ import type { SystemSettings } from '@open-archiver/types';
 import { version } from '../../../../package.json';
 import semver from 'semver';
 
-let newVersionInfo: { version: string; description: string; url: string } | null = null;
+let upstreamUpdateInfo: { version: string; description: string; url: string } | null = null;
 let lastChecked: Date | null = null;
+
+// Extract base version from fork version (e.g., "0.4.1-fork.1" -> "0.4.1")
+function getBaseVersion(ver: string): string {
+	const match = ver.match(/^(\d+\.\d+\.\d+)/);
+	return match ? match[1] : ver;
+}
 
 export const load: LayoutServerLoad = async (event) => {
 	const { locals, url } = event;
@@ -45,13 +51,17 @@ export const load: LayoutServerLoad = async (event) => {
 			);
 			if (res.ok) {
 				const latestRelease = await res.json();
-				const latestVersion = latestRelease.tag_name.replace('v', '');
-				if (semver.gt(latestVersion, version)) {
-					newVersionInfo = {
-						version: latestVersion,
+				const latestUpstreamVersion = latestRelease.tag_name.replace('v', '');
+				const baseVersion = getBaseVersion(version);
+				// Check if upstream has a newer version than our base
+				if (semver.gt(latestUpstreamVersion, baseVersion)) {
+					upstreamUpdateInfo = {
+						version: latestUpstreamVersion,
 						description: latestRelease.name,
 						url: latestRelease.html_url,
 					};
+				} else {
+					upstreamUpdateInfo = null;
 				}
 			}
 			lastChecked = now;
@@ -66,6 +76,6 @@ export const load: LayoutServerLoad = async (event) => {
 		enterpriseMode: locals.enterpriseMode,
 		systemSettings,
 		currentVersion: version,
-		newVersionInfo: newVersionInfo,
+		upstreamUpdateInfo,
 	};
 };
