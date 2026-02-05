@@ -85,11 +85,37 @@ The frontend (`packages/frontend/src/`) uses SvelteKit file-based routing:
 
 - TypeScript strict mode - avoid `any`, define types in `packages/types`
 - Prettier formatting: tabs, single quotes, trailing commas, 100 char width
-- Git commits: present tense, imperative mood ("Add feature" not "Added feature")
+
+## Git Commits
+
+Follow [Conventional Commits](https://conventionalcommits.org) format:
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+```
+
+**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `ci`, `build`
+
+**Scopes**: `backend`, `frontend`, `types`, `docs`, `db`, `api`, `ingestion`, `search`, `auth`
+
+**Examples**:
+- `feat(ingestion): add JMAP email provider support`
+- `fix(api): handle null response in search endpoint`
+- `docs: update installation guide`
+- `refactor(backend): extract email parsing to helper`
+
+**Commit frequently and atomically**:
+- Each commit should represent a single logical change
+- Commit after completing each distinct piece of work (e.g., adding a type, implementing a function, updating tests)
+- Don't bundle unrelated changes in one commit
+- Aim for commits that could be reverted independently if needed
 
 ## Infrastructure Dependencies
 
 The application requires these services (provided via docker-compose.yml):
+
 - PostgreSQL 17
 - Valkey 8 (Redis-compatible)
 - Meilisearch v1.15
