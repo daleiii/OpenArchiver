@@ -114,6 +114,36 @@ Follow [Conventional Commits](https://conventionalcommits.org) format:
 - Don't bundle unrelated changes in one commit
 - Aim for commits that could be reverted independently if needed
 
+## Syncing Fork with Upstream
+
+This repository is a fork. To sync with the upstream repository:
+
+```bash
+# Check for new upstream changes
+git fetch upstream
+git log main..upstream/main --oneline  # Shows commits you're missing
+
+# Option 1: Merge (preserves history, safer)
+git merge upstream/main
+git push origin main
+
+# Option 2: Rebase (cleaner linear history)
+git rebase upstream/main
+git push origin main --force-with-lease
+```
+
+**Resolving conflicts**:
+
+1. Git will pause and show conflicting files
+2. Edit files to resolve conflicts
+3. `git add <resolved-files>`
+4. `git merge --continue` or `git rebase --continue`
+
+**Remote configuration**:
+
+- `origin` - Your fork (daleiii/OpenArchiver) - default push target
+- `upstream` - Main repo (LogicLabs-OU/OpenArchiver) - source of updates
+
 ## Infrastructure Dependencies
 
 The application requires these services (provided via docker-compose.yml):
