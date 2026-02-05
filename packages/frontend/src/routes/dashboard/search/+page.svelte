@@ -44,6 +44,7 @@
 	let filterBcc = $state(data.filters?.bcc || '');
 	let dateFrom = $state(data.filters?.dateFrom || '');
 	let dateTo = $state(data.filters?.dateTo || '');
+	let hasAttachments = $state(data.filters?.hasAttachments || '');
 
 	// UI state
 	let optionsOpen = $state(false);
@@ -62,6 +63,17 @@
 		{ value: 'relevance', label: $t('app.search.sort_relevance') },
 	];
 
+	const attachmentOptions = [
+		{ value: '', label: $t('app.search.attachments_any') },
+		{ value: 'true', label: $t('app.search.attachments_with') },
+		{ value: 'false', label: $t('app.search.attachments_without') },
+	];
+
+	const attachmentTriggerContent = $derived(
+		attachmentOptions.find((a) => a.value === hasAttachments)?.label ??
+			$t('app.search.attachments_any')
+	);
+
 	const sortTriggerContent = $derived(
 		sortOptions.find((s) => s.value === sort)?.label ?? $t('app.search.sort_newest')
 	);
@@ -72,7 +84,9 @@
 	);
 
 	const activeFilterCount = $derived(
-		[filterFrom, filterTo, filterCc, filterBcc, dateFrom, dateTo].filter(Boolean).length
+		[filterFrom, filterTo, filterCc, filterBcc, dateFrom, dateTo, hasAttachments].filter(
+			Boolean
+		).length
 	);
 	const hasActiveFilters = $derived(activeFilterCount > 0);
 
@@ -129,6 +143,7 @@
 		if (filterBcc) params.set('bcc', filterBcc);
 		if (dateFrom) params.set('dateFrom', dateFrom);
 		if (dateTo) params.set('dateTo', dateTo);
+		if (hasAttachments) params.set('hasAttachments', hasAttachments);
 		return `/dashboard/search?${params.toString()}`;
 	}
 
@@ -144,6 +159,7 @@
 		filterBcc = '';
 		dateFrom = '';
 		dateTo = '';
+		hasAttachments = '';
 	}
 
 	// Debounced auto-search when keywords or filters change
@@ -159,6 +175,7 @@
 			filterBcc,
 			dateFrom,
 			dateTo,
+			hasAttachments,
 		];
 		// Use void to ensure we're reading the values for reactivity
 		void searchValues;
@@ -355,7 +372,7 @@
 							/>
 						</div>
 
-						<!-- Row 2: BCC, Date Range -->
+						<!-- Row 2: BCC, Date Range, Attachments -->
 						<div class="space-y-2">
 							<Label for="filter-bcc">{$t('app.search.filter_bcc')}</Label>
 							<Input
@@ -373,7 +390,28 @@
 							<Label for="date-to">{$t('app.search.filter_date_to')}</Label>
 							<Input id="date-to" type="date" bind:value={dateTo} />
 						</div>
-						<div class="flex items-end">
+						<div class="space-y-2">
+							<Label for="attachments">{$t('app.search.filter_attachments')}</Label>
+							<Select.Root type="single" bind:value={hasAttachments}>
+								<Select.Trigger id="attachments" class="w-full cursor-pointer">
+									{attachmentTriggerContent}
+								</Select.Trigger>
+								<Select.Content>
+									{#each attachmentOptions as opt (opt.value)}
+										<Select.Item
+											value={opt.value}
+											label={opt.label}
+											class="cursor-pointer"
+										>
+											{opt.label}
+										</Select.Item>
+									{/each}
+								</Select.Content>
+							</Select.Root>
+						</div>
+
+						<!-- Row 3: Clear button -->
+						<div class="col-span-4 flex items-end justify-end">
 							{#if hasActiveFilters}
 								<Button type="button" variant="outline" onclick={clearFilters}>
 									{$t('app.search.clear_filters')}

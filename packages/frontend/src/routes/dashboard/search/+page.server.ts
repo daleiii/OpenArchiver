@@ -12,6 +12,7 @@ interface SearchFilters {
 	dateTo?: string;
 	threadId?: string;
 	tags?: string;
+	hasAttachments?: string;
 }
 
 async function performSearch(
@@ -50,6 +51,7 @@ async function performSearch(
 		if (filters.bcc) params.set('filters[bcc]', filters.bcc);
 		if (filters.threadId) params.set('filters[threadId]', filters.threadId);
 		if (filters.tags) params.set('filters[tags]', filters.tags);
+		if (filters.hasAttachments) params.set('filters[hasAttachments]', filters.hasAttachments);
 
 		// Date filters need to be converted to timestamp comparisons
 		if (filters.dateFrom) {
@@ -114,6 +116,7 @@ export const load: PageServerLoad = async (event) => {
 		dateTo: event.url.searchParams.get('dateTo') || undefined,
 		threadId: event.url.searchParams.get('threadId') || undefined,
 		tags: event.url.searchParams.get('tags') || undefined,
+		hasAttachments: event.url.searchParams.get('hasAttachments') || undefined,
 	};
 
 	return performSearch(keywords, page, limit, matchingStrategy, sort, filters, event);
