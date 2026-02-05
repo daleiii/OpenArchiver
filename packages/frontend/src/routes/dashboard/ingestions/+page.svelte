@@ -3,7 +3,8 @@
 	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { MoreHorizontal, Trash, RefreshCw, Loader2, Copy, ExternalLink } from 'lucide-svelte';
+	import { MoreHorizontal, Trash, RefreshCw, Loader2, ExternalLink, Check } from 'lucide-svelte';
+	import { Input } from '$lib/components/ui/input';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Switch } from '$lib/components/ui/switch';
 	import { Checkbox } from '$lib/components/ui/checkbox';
@@ -14,8 +15,6 @@
 	import { setAlert } from '$lib/components/custom/alert/alert-state.svelte';
 	import * as HoverCard from '$lib/components/ui/hover-card/index.js';
 	import { t } from '$lib/translations';
-	import { onMount, onDestroy } from 'svelte';
-
 	let { data }: { data: PageData } = $props();
 
 	let ingestionSources = $state(data.ingestionSources);
@@ -27,25 +26,15 @@
 	let selectedIds = $state<string[]>([]);
 	let isBulkDeleteDialogOpen = $state(false);
 
-	// Gmail Device Auth state
+	// Gmail OAuth state
 	let isGmailAuthDialogOpen = $state(false);
 	let gmailAuthData = $state<{
-		userCode: string;
-		verificationUrl: string;
-		deviceCode: string;
+		authUrl: string;
 		sourceId: string;
-		expiresIn: number;
-		interval: number;
 	} | null>(null);
-	let gmailAuthStatus = $state<'pending' | 'success' | 'error'>('pending');
+	let gmailAuthStatus = $state<'pending' | 'submitting' | 'success' | 'error'>('pending');
 	let gmailAuthMessage = $state('');
-	let pollInterval: ReturnType<typeof setInterval> | null = null;
-
-	onDestroy(() => {
-		if (pollInterval) {
-			clearInterval(pollInterval);
-		}
-	});
+	let gmailAuthCode = $state('');
 
 	const openCreateDialog = () => {
 		selectedSource = null;
@@ -207,9 +196,9 @@
 		}
 	};
 
-	const startGmailDeviceAuth = async (sourceId: string) => {
+	const startGmailAuth = async (sourceId: string) => {
 		try {
-			const response = await api(`/auth/gmail/device?sourceId=${sourceId}`);
+			const response = await api(`/auth/gmail/url?sourceId=${sourceId}`);
 			if (!response.ok) {
 				const errorData = await response.json();
 				throw new Error(errorData.message || 'Failed to start Gmail authorization');
@@ -217,16 +206,13 @@
 			const data = await response.json();
 
 			gmailAuthData = {
-				...data,
+				authUrl: data.authUrl,
 				sourceId,
 			};
 			gmailAuthStatus = 'pending';
 			gmailAuthMessage = '';
+			gmailAuthCode = '';
 			isGmailAuthDialogOpen = true;
-
-			// Start polling
-			const pollIntervalMs = (data.interval || 5) * 1000;
-			pollInterval = setInterval(() => pollGmailAuth(), pollIntervalMs);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Unknown error';
 			setAlert({
@@ -239,61 +225,44 @@
 		}
 	};
 
-	const pollGmailAuth = async () => {
-		if (!gmailAuthData) return;
+	const submitGmailCode = async () => {
+		if (!gmailAuthData || !gmailAuthCode.trim()) return;
+
+		gmailAuthStatus = 'submitting';
 
 		try {
-			const response = await api(
-				`/auth/gmail/device/poll?sourceId=${gmailAuthData.sourceId}&deviceCode=${gmailAuthData.deviceCode}`
-			);
+			const response = await api('/auth/gmail/exchange', {
+				method: 'POST',
+				body: JSON.stringify({
+					sourceId: gmailAuthData.sourceId,
+					code: gmailAuthCode.trim(),
+				}),
+			});
+
 			const data = await response.json();
 
-			if (data.status === 'success') {
-				gmailAuthStatus = 'success';
-				gmailAuthMessage = data.userEmail ? `Connected: ${data.userEmail}` : 'Connected!';
-				if (pollInterval) {
-					clearInterval(pollInterval);
-					pollInterval = null;
-				}
-				// Refresh the ingestion sources list
-				const sourcesResponse = await api('/ingestion-sources');
-				if (sourcesResponse.ok) {
-					ingestionSources = await sourcesResponse.json();
-				}
-			} else if (data.status === 'error') {
-				gmailAuthStatus = 'error';
-				gmailAuthMessage = data.message;
-				if (pollInterval) {
-					clearInterval(pollInterval);
-					pollInterval = null;
-				}
+			if (!response.ok) {
+				throw new Error(data.message || 'Failed to exchange code');
 			}
-			// For 'pending' and 'slow_down', continue polling
+
+			gmailAuthStatus = 'success';
+			gmailAuthMessage = data.userEmail ? `Connected: ${data.userEmail}` : 'Connected!';
+
+			// Refresh the ingestion sources list
+			const sourcesResponse = await api('/ingestion-sources');
+			if (sourcesResponse.ok) {
+				ingestionSources = await sourcesResponse.json();
+			}
 		} catch (error) {
-			console.error('Polling error:', error);
+			gmailAuthStatus = 'error';
+			gmailAuthMessage = error instanceof Error ? error.message : 'Authorization failed';
 		}
 	};
 
 	const closeGmailAuthDialog = () => {
-		if (pollInterval) {
-			clearInterval(pollInterval);
-			pollInterval = null;
-		}
 		isGmailAuthDialogOpen = false;
 		gmailAuthData = null;
-	};
-
-	const copyCode = async () => {
-		if (gmailAuthData?.userCode) {
-			await navigator.clipboard.writeText(gmailAuthData.userCode);
-			setAlert({
-				type: 'success',
-				title: 'Copied',
-				message: 'Code copied to clipboard',
-				duration: 2000,
-				show: true,
-			});
-		}
+		gmailAuthCode = '';
 	};
 
 	const handleFormSubmit = async (formData: CreateIngestionSourceDto) => {
@@ -324,11 +293,11 @@
 				}
 				const newSource = await response.json();
 
-				// For Gmail, start the device authorization flow
+				// For Gmail, start the OAuth authorization flow
 				if (formData.provider === 'gmail') {
 					isDialogOpen = false;
 					ingestionSources = [...ingestionSources, newSource];
-					await startGmailDeviceAuth(newSource.id);
+					await startGmailAuth(newSource.id);
 					return;
 				}
 
@@ -571,14 +540,14 @@
 	</Dialog.Content>
 </Dialog.Root>
 
-<!-- Gmail Device Authorization Dialog -->
+<!-- Gmail OAuth Authorization Dialog -->
 <Dialog.Root bind:open={isGmailAuthDialogOpen} onOpenChange={(open) => !open && closeGmailAuthDialog()}>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
 			<Dialog.Title>Connect Gmail Account</Dialog.Title>
 			<Dialog.Description>
-				{#if gmailAuthStatus === 'pending'}
-					Complete the authorization on Google to connect your Gmail account.
+				{#if gmailAuthStatus === 'pending' || gmailAuthStatus === 'submitting'}
+					Follow the steps below to connect your Gmail account.
 				{:else if gmailAuthStatus === 'success'}
 					Your Gmail account has been connected successfully!
 				{:else}
@@ -587,38 +556,47 @@
 			</Dialog.Description>
 		</Dialog.Header>
 
-		{#if gmailAuthStatus === 'pending' && gmailAuthData}
+		{#if (gmailAuthStatus === 'pending' || gmailAuthStatus === 'submitting') && gmailAuthData}
 			<div class="space-y-4">
-				<div class="text-center">
-					<p class="text-sm text-muted-foreground mb-2">Enter this code at Google:</p>
-					<div class="flex items-center justify-center gap-2">
-						<code class="text-3xl font-bold tracking-wider bg-muted px-4 py-2 rounded">
-							{gmailAuthData.userCode}
-						</code>
-						<Button variant="outline" size="icon" onclick={copyCode}>
-							<Copy class="h-4 w-4" />
-						</Button>
-					</div>
-				</div>
-
-				<div class="flex justify-center">
+				<div class="space-y-2">
+					<p class="text-sm font-medium">Step 1: Open Google Authorization</p>
+					<p class="text-sm text-muted-foreground">
+						Click the button below to sign in with Google. After authorizing, you'll be redirected to a page that won't load - this is expected.
+					</p>
 					<Button
 						variant="default"
-						onclick={() => window.open(gmailAuthData?.verificationUrl, '_blank')}
+						onclick={() => window.open(gmailAuthData?.authUrl, '_blank')}
+						class="w-full"
 					>
 						<ExternalLink class="mr-2 h-4 w-4" />
-						Open Google Sign-in
+						Sign in with Google
 					</Button>
 				</div>
 
-				<div class="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-					<Loader2 class="h-4 w-4 animate-spin" />
-					Waiting for authorization...
+				<div class="space-y-2">
+					<p class="text-sm font-medium">Step 2: Copy the code from the URL</p>
+					<p class="text-sm text-muted-foreground">
+						After authorizing, copy the <code class="bg-muted px-1 rounded">code=</code> value from your browser's address bar and paste it below.
+					</p>
+					<div class="text-xs text-muted-foreground bg-muted p-2 rounded font-mono break-all">
+						http://localhost:4000/...?code=<span class="text-primary font-bold">4/0XXXXX...</span>&scope=...
+					</div>
+				</div>
+
+				<div class="space-y-2">
+					<p class="text-sm font-medium">Step 3: Paste the code</p>
+					<Input
+						type="text"
+						placeholder="Paste the code here (starts with 4/0...)"
+						bind:value={gmailAuthCode}
+						disabled={gmailAuthStatus === 'submitting'}
+					/>
 				</div>
 			</div>
 		{:else if gmailAuthStatus === 'success'}
 			<div class="text-center py-4">
-				<div class="text-green-600 dark:text-green-400 text-lg font-medium">
+				<div class="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 text-lg font-medium">
+					<Check class="h-5 w-5" />
 					{gmailAuthMessage}
 				</div>
 				<p class="text-sm text-muted-foreground mt-2">
@@ -634,6 +612,20 @@
 		{/if}
 
 		<Dialog.Footer>
+			{#if gmailAuthStatus === 'pending' || gmailAuthStatus === 'submitting'}
+				<Button
+					variant="default"
+					onclick={submitGmailCode}
+					disabled={!gmailAuthCode.trim() || gmailAuthStatus === 'submitting'}
+				>
+					{#if gmailAuthStatus === 'submitting'}
+						<Loader2 class="mr-2 h-4 w-4 animate-spin" />
+						Connecting...
+					{:else}
+						Connect Account
+					{/if}
+				</Button>
+			{/if}
 			<Button variant="outline" onclick={closeGmailAuthDialog}>
 				{gmailAuthStatus === 'success' ? 'Done' : 'Cancel'}
 			</Button>

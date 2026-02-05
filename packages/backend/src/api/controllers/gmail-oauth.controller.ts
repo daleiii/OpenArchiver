@@ -9,16 +9,16 @@ import { ingestionSources } from '../../database/schema';
 import { eq } from 'drizzle-orm';
 import type { GmailCredentials } from '@open-archiver/types';
 
-// Google's Device Authorization endpoints
-const DEVICE_AUTH_ENDPOINT = 'https://oauth2.googleapis.com/device/code';
-const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
+// Localhost redirect URI for manual code exchange
+const REDIRECT_URI = 'http://localhost:4000/api/v1/auth/gmail/callback';
 
 export class GmailOAuthController {
 	/**
-	 * Initiates the Device Authorization flow.
-	 * Returns a user code that the user must enter at google.com/device
+	 * Generates the Google OAuth authorization URL.
+	 * User will be redirected to localhost which won't work,
+	 * but they can copy the code from the URL.
 	 */
-	public startDeviceAuth = async (req: Request, res: Response): Promise<Response> => {
+	public getAuthUrl = async (req: Request, res: Response): Promise<Response> => {
 		try {
 			const { sourceId } = req.query;
 
@@ -43,123 +43,87 @@ export class GmailOAuthController {
 				return res.status(400).json({ message: 'Ingestion source is not a Gmail provider' });
 			}
 
-			// Request device and user codes from Google
-			const response = await fetch(DEVICE_AUTH_ENDPOINT, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams({
-					client_id: config.googleOAuth.clientId,
-					scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.email',
-				}),
+			const oauth2Client = new google.auth.OAuth2(
+				config.googleOAuth.clientId,
+				config.googleOAuth.clientSecret,
+				REDIRECT_URI
+			);
+
+			const scopes = [
+				'https://www.googleapis.com/auth/gmail.readonly',
+				'https://www.googleapis.com/auth/userinfo.email',
+			];
+
+			const authUrl = oauth2Client.generateAuthUrl({
+				access_type: 'offline',
+				scope: scopes,
+				state: sourceId,
+				prompt: 'consent', // Force consent to always get refresh token
 			});
 
-			if (!response.ok) {
-				const errorData = await response.json();
-				logger.error({ error: errorData }, 'Failed to start device authorization');
-				return res.status(500).json({
-					message: 'Failed to start device authorization',
-					error: errorData,
-				});
-			}
-
-			const data = await response.json();
-
-			return res.json({
-				userCode: data.user_code,
-				verificationUrl: data.verification_url,
-				deviceCode: data.device_code,
-				expiresIn: data.expires_in,
-				interval: data.interval,
-			});
+			return res.json({ authUrl });
 		} catch (error) {
-			logger.error({ err: error }, 'Failed to start Gmail device authorization');
-			return res.status(500).json({ message: 'Failed to start device authorization' });
+			logger.error({ err: error }, 'Failed to generate Gmail OAuth URL');
+			return res.status(500).json({ message: 'Failed to generate authorization URL' });
 		}
 	};
 
 	/**
-	 * Polls Google to check if the user has completed authorization.
-	 * Should be called repeatedly by the frontend until success or expiration.
+	 * Exchanges an authorization code for tokens.
+	 * The code is manually provided by the user after they copy it from the redirect URL.
 	 */
-	public pollDeviceAuth = async (req: Request, res: Response): Promise<Response> => {
+	public exchangeCode = async (req: Request, res: Response): Promise<Response> => {
 		try {
-			const { sourceId, deviceCode } = req.query;
+			const { sourceId, code } = req.body;
 
 			if (!sourceId || typeof sourceId !== 'string') {
 				return res.status(400).json({ message: 'Missing sourceId parameter' });
 			}
 
-			if (!deviceCode || typeof deviceCode !== 'string') {
-				return res.status(400).json({ message: 'Missing deviceCode parameter' });
+			if (!code || typeof code !== 'string') {
+				return res.status(400).json({ message: 'Missing code parameter' });
 			}
 
 			if (!config.googleOAuth.clientId || !config.googleOAuth.clientSecret) {
 				return res.status(500).json({ message: 'Google OAuth is not configured' });
 			}
 
-			// Poll Google's token endpoint
-			const response = await fetch(TOKEN_ENDPOINT, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/x-www-form-urlencoded',
-				},
-				body: new URLSearchParams({
-					client_id: config.googleOAuth.clientId,
-					client_secret: config.googleOAuth.clientSecret,
-					device_code: deviceCode,
-					grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-				}),
-			});
-
-			const data = await response.json();
-
-			// Check for pending authorization
-			if (data.error === 'authorization_pending') {
-				return res.json({ status: 'pending', message: 'Waiting for user authorization' });
+			// Verify the ingestion source exists
+			const source = await IngestionService.findById(sourceId);
+			if (!source) {
+				return res.status(404).json({ message: 'Ingestion source not found' });
 			}
 
-			// Check for slow down request
-			if (data.error === 'slow_down') {
-				return res.json({ status: 'slow_down', message: 'Please slow down polling' });
+			if (source.provider !== 'gmail') {
+				return res.status(400).json({ message: 'Ingestion source is not a Gmail provider' });
 			}
 
-			// Check for other errors
-			if (data.error) {
-				logger.error({ error: data }, 'Device authorization error');
-				return res.json({
-					status: 'error',
-					message: data.error_description || data.error,
-				});
-			}
-
-			// Success - we have tokens
-			if (!data.refresh_token) {
-				logger.error({}, 'No refresh token received from Google');
-				return res.json({
-					status: 'error',
-					message: 'No refresh token received. Please try again.',
-				});
-			}
-
-			// Get user email using the access token
 			const oauth2Client = new google.auth.OAuth2(
 				config.googleOAuth.clientId,
-				config.googleOAuth.clientSecret
+				config.googleOAuth.clientSecret,
+				REDIRECT_URI
 			);
-			oauth2Client.setCredentials({
-				access_token: data.access_token,
-				refresh_token: data.refresh_token,
-			});
 
+			// Exchange code for tokens
+			const { tokens } = await oauth2Client.getToken(code);
+
+			if (!tokens.refresh_token) {
+				logger.error({}, 'No refresh token received from Google');
+				return res.status(400).json({
+					message:
+						'No refresh token received. Please revoke access at myaccount.google.com/permissions and try again.',
+				});
+			}
+
+			oauth2Client.setCredentials(tokens);
+
+			// Get user email from userinfo
 			const oauth2 = google.oauth2({ version: 'v2', auth: oauth2Client });
 			const userInfo = await oauth2.userinfo.get();
 			const userEmail = userInfo.data.email;
 
 			if (!userEmail) {
-				return res.json({
-					status: 'error',
+				return res.status(400).json({
 					message: 'Could not get user email from Google',
 				});
 			}
@@ -167,7 +131,7 @@ export class GmailOAuthController {
 			// Update the ingestion source with the credentials
 			const credentials: GmailCredentials = {
 				type: 'gmail',
-				refreshToken: data.refresh_token,
+				refreshToken: tokens.refresh_token,
 				userEmail: userEmail,
 			};
 
@@ -181,20 +145,27 @@ export class GmailOAuthController {
 				})
 				.where(eq(ingestionSources.id, sourceId));
 
-			logger.info({ sourceId, userEmail }, 'Gmail device authorization successful');
+			logger.info({ sourceId, userEmail }, 'Gmail OAuth authorization successful');
 
 			// Trigger initial import
 			await IngestionService.triggerInitialImport(sourceId);
 
 			return res.json({
-				status: 'success',
+				success: true,
 				message: 'Gmail account connected successfully',
 				userEmail,
 			});
 		} catch (error: any) {
-			logger.error({ err: error }, 'Gmail device authorization poll error');
-			return res.json({
-				status: 'error',
+			logger.error({ err: error }, 'Gmail code exchange error');
+
+			// Handle specific Google OAuth errors
+			if (error.message?.includes('invalid_grant')) {
+				return res.status(400).json({
+					message: 'Invalid or expired code. Please try again with a new authorization.',
+				});
+			}
+
+			return res.status(500).json({
 				message: error.message || 'Authorization failed',
 			});
 		}
