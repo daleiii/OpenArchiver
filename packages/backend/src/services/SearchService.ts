@@ -183,6 +183,9 @@ export class SearchService {
 	}
 
 	public async configureEmailIndex() {
+		// Enable experimental containsFilter for partial matching in filters
+		await this.client.updateExperimentalFeatures({ containsFilter: true });
+
 		const index = await this.getIndex('emails');
 		await index.updateSettings({
 			searchableAttributes: [
