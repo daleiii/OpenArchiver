@@ -15,15 +15,15 @@
 
 <div>
 	<ScrollArea class="max-h-120 -ml-3 overflow-y-scroll">
-		<div class="relative ml-3 border-l-2 border-gray-200 pl-6">
+		<div class="relative ml-3 border-l-2 border-gray-200 pl-6 dark:border-gray-700">
 			{#if thread}
 				{#each thread as item, i (item.id)}
 					<div class="mb-8">
 						<span
-							class=" ring-sidebar absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 ring-8"
+							class="ring-sidebar absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 ring-8 dark:bg-gray-700"
 						>
 							<svg
-								class="h-3 w-3 text-gray-600"
+								class="h-3 w-3 text-gray-600 dark:text-gray-300"
 								fill="currentColor"
 								viewBox="0 0 20 20"
 								xmlns="http://www.w3.org/2000/svg"
@@ -37,8 +37,8 @@
 						<h4
 							class:font-bold={item.id === currentEmailId}
 							class="text-md mb-2 {item.id !== currentEmailId
-								? 'text-blue-500 hover:underline'
-								: 'text-gray-900'}"
+								? 'text-primary hover:underline'
+								: 'text-foreground'}"
 						>
 							{#if item.id !== currentEmailId}
 								<a
@@ -55,10 +55,10 @@
 							{/if}
 						</h4>
 						<div
-							class="flex flex-col space-y-2 text-sm font-normal leading-none text-gray-400"
+							class="text-muted-foreground flex flex-col space-y-2 text-sm font-normal leading-none"
 						>
 							<span>{$t('app.archive.from')}: {item.senderEmail}</span>
-							<time class="">{new Date(item.sentAt).toLocaleString()}</time>
+							<time>{new Date(item.sentAt).toLocaleString()}</time>
 						</div>
 					</div>
 				{/each}
