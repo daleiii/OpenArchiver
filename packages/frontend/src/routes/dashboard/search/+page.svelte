@@ -132,7 +132,8 @@
 
 	function buildSearchUrl(pageNum: number = 1) {
 		const params = new URLSearchParams();
-		params.set('keywords', keywords);
+		// Use '*' to match all when keywords empty but filters active
+		params.set('keywords', keywords || '*');
 		params.set('page', String(pageNum));
 		params.set('limit', String(limit));
 		params.set('matchingStrategy', matchingStrategy);
@@ -187,8 +188,8 @@
 
 		// Set new timer
 		debounceTimer = setTimeout(() => {
-			// Only search if we have keywords
-			if (keywords) {
+			// Search if we have keywords OR active filters
+			if (keywords || hasActiveFilters) {
 				goto(buildSearchUrl(1), { keepFocus: true });
 			}
 		}, 500);
