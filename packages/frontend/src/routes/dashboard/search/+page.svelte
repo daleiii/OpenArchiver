@@ -22,7 +22,6 @@
 	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 	import HelpCircle from 'lucide-svelte/icons/help-circle';
 	import SearchX from 'lucide-svelte/icons/search-x';
-	import X from 'lucide-svelte/icons/x';
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import { t } from '$lib/translations';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
@@ -147,9 +146,41 @@
 		dateTo = '';
 	}
 
-	function clearKeywords() {
-		keywords = '';
-	}
+	// Debounced auto-search when keywords or filters change
+	let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+	$effect(() => {
+		// Track all searchable values
+		const searchValues = [
+			keywords,
+			filterFrom,
+			filterTo,
+			filterCc,
+			filterBcc,
+			dateFrom,
+			dateTo,
+		];
+		// Use void to ensure we're reading the values for reactivity
+		void searchValues;
+
+		if (!isMounted) return;
+
+		// Clear existing timer
+		if (debounceTimer) clearTimeout(debounceTimer);
+
+		// Set new timer
+		debounceTimer = setTimeout(() => {
+			// Only search if we have keywords
+			if (keywords) {
+				goto(buildSearchUrl(1), { keepFocus: true });
+			}
+		}, 500);
+
+		// Cleanup on effect re-run
+		return () => {
+			if (debounceTimer) clearTimeout(debounceTimer);
+		};
+	});
 
 	function getHighlightedSnippets(text: string | undefined, snippetLength = 80): string[] {
 		if (!text || !text.includes('<em>')) {
@@ -231,23 +262,14 @@
 	<form onsubmit={(e) => handleSearch(e)} class="mb-8 flex flex-col space-y-4">
 		<!-- Search input -->
 		<div class="flex items-center gap-2">
-			<div class="relative flex-grow">
+			<div class="flex-grow">
 				<Input
 					type="search"
 					name="keywords"
 					placeholder={$t('app.search.placeholder')}
-					class="h-12 pr-10"
+					class="h-12"
 					bind:value={keywords}
 				/>
-				{#if keywords}
-					<button
-						type="button"
-						onclick={clearKeywords}
-						class="text-muted-foreground hover:text-foreground absolute right-3 top-1/2 -translate-y-1/2"
-					>
-						<X class="h-4 w-4" />
-					</button>
-				{/if}
 			</div>
 			<Button type="submit" class="h-12 cursor-pointer">
 				{$t('app.search.search_button')}

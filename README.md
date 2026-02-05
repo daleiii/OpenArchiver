@@ -16,20 +16,24 @@ Open Archiver provides a robust, self-hosted solution for archiving, storing, in
 This fork includes the following enhancements over the upstream [LogicLabs-OU/OpenArchiver](https://github.com/LogicLabs-OU/OpenArchiver):
 
 ### New Email Providers
+
 - **Gmail (Personal)**: OAuth-based connector for personal Gmail accounts using Device Authorization Flow
 - **JMAP**: Support for JMAP protocol (RFC 8620/8621) - works with Fastmail, Stalwart, Cyrus IMAP, and other JMAP-compatible providers
 
 ### Enhanced Search
+
 - **Relevance Scoring**: Display Meilisearch ranking scores in search results
 - **Date Range Filters**: Filter search results by date range (from/to)
 - **Advanced Filters**: Filter by sender, recipient, CC, and BCC fields
 - **Sort Options**: Sort results by newest first, oldest first, or by relevance
 
 ### UI/UX Improvements
+
 - Improved tooltip spacing for better readability
 - Better y-axis padding on ingestion history charts
 
 ### Fork Maintenance
+
 - Hybrid versioning scheme (`<upstream-version>-fork.<patch>`) for clear version tracking
 - Footer notification when upstream releases new versions
 - Conventional commit guidelines for atomic, well-documented changes
