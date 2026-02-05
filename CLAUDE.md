@@ -114,9 +114,33 @@ Follow [Conventional Commits](https://conventionalcommits.org) format:
 - Don't bundle unrelated changes in one commit
 - Aim for commits that could be reverted independently if needed
 
+## Fork Versioning
+
+This repository is a fork with its own version scheme:
+
+```
+<upstream-version>-fork.<patch>
+Example: 0.4.1-fork.1, 0.4.1-fork.2, etc.
+```
+
+**Version is defined in**: `package.json` (root)
+
+**When to bump the version**:
+
+- Bump the fork patch number (e.g., `fork.1` → `fork.2`) when making changes
+- After syncing with upstream, reset to new base (e.g., `0.5.0-fork.1`)
+
+**Update version when**:
+
+- Adding new features
+- Fixing bugs
+- Making any user-facing changes
+
+The footer displays the current version and alerts when upstream has updates available.
+
 ## Syncing Fork with Upstream
 
-This repository is a fork. To sync with the upstream repository:
+To sync with the upstream repository:
 
 ```bash
 # Check for new upstream changes
