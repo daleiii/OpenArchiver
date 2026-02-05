@@ -70,12 +70,23 @@ export class SearchService {
 			offset: (page - 1) * limit,
 			attributesToHighlight: ['*'],
 			showMatchesPosition: true,
+			showRankingScore: true,
 			sort: ['timestamp:desc'],
 			matchingStrategy,
 		};
 
 		if (filters) {
 			const filterStrings = Object.entries(filters).map(([key, value]) => {
+				// Handle comparison operators for date range filters
+				if (key.endsWith('_gte')) {
+					const field = key.replace('_gte', '');
+					return `${field} >= ${value}`;
+				}
+				if (key.endsWith('_lte')) {
+					const field = key.replace('_lte', '');
+					return `${field} <= ${value}`;
+				}
+				// Standard equality filter
 				if (typeof value === 'string') {
 					return `${key} = '${value}'`;
 				}
