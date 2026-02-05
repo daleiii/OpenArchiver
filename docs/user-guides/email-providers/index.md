@@ -8,6 +8,7 @@ Choose your provider from the list below to get started:
 - [Gmail (Personal)](./gmail.md) - For personal @gmail.com accounts
 - [Microsoft 365](./microsoft-365.md)
 - [Generic IMAP Server](./imap.md)
+- [JMAP (Fastmail, etc.)](./jmap.md) - Modern email protocol
 - [EML Import](./eml.md)
 - [PST Import](./pst.md)
 - [Mbox Import](./mbox.md)

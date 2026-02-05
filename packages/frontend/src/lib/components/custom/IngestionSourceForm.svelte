@@ -26,6 +26,10 @@
 			label: $t('app.components.ingestion_source_form.provider_generic_imap'),
 		},
 		{
+			value: 'jmap',
+			label: $t('app.components.ingestion_source_form.provider_jmap'),
+		},
+		{
 			value: 'gmail',
 			label: $t('app.components.ingestion_source_form.provider_gmail'),
 		},
@@ -144,7 +148,8 @@
 
 	{#if formData.provider === 'gmail'}
 		<Alert.Root>
-			<Alert.Title>{$t('app.components.ingestion_source_form.gmail_oauth_title')}</Alert.Title>
+			<Alert.Title>{$t('app.components.ingestion_source_form.gmail_oauth_title')}</Alert.Title
+			>
 			<Alert.Description>
 				<div class="my-1">
 					{$t('app.components.ingestion_source_form.gmail_oauth_description')}
@@ -248,6 +253,83 @@
 				bind:checked={formData.providerConfig.allowInsecureCert}
 			/>
 		</div>
+	{:else if formData.provider === 'jmap'}
+		<div class="grid grid-cols-4 items-center gap-4">
+			<Label for="sessionUrl" class="text-left"
+				>{$t('app.components.ingestion_source_form.jmap_session_url')}</Label
+			>
+			<Input
+				id="sessionUrl"
+				bind:value={formData.providerConfig.sessionUrl}
+				placeholder="https://api.fastmail.com/jmap/session"
+				class="col-span-3"
+			/>
+		</div>
+		<div class="grid grid-cols-4 items-center gap-4">
+			<Label for="authMethod" class="text-left"
+				>{$t('app.components.ingestion_source_form.jmap_auth_method')}</Label
+			>
+			<Select.Root
+				name="authMethod"
+				bind:value={formData.providerConfig.authMethod}
+				type="single"
+			>
+				<Select.Trigger class="col-span-3">
+					{formData.providerConfig.authMethod === 'bearer'
+						? $t('app.components.ingestion_source_form.jmap_auth_bearer')
+						: $t('app.components.ingestion_source_form.jmap_auth_basic')}
+				</Select.Trigger>
+				<Select.Content>
+					<Select.Item value="basic"
+						>{$t('app.components.ingestion_source_form.jmap_auth_basic')}</Select.Item
+					>
+					<Select.Item value="bearer"
+						>{$t('app.components.ingestion_source_form.jmap_auth_bearer')}</Select.Item
+					>
+				</Select.Content>
+			</Select.Root>
+		</div>
+		{#if formData.providerConfig.authMethod === 'bearer'}
+			<div class="grid grid-cols-4 items-center gap-4">
+				<Label for="bearerToken" class="text-left"
+					>{$t('app.components.ingestion_source_form.jmap_bearer_token')}</Label
+				>
+				<Input
+					id="bearerToken"
+					type="password"
+					bind:value={formData.providerConfig.bearerToken}
+					class="col-span-3"
+				/>
+			</div>
+		{:else}
+			<div class="grid grid-cols-4 items-center gap-4">
+				<Label for="username" class="text-left"
+					>{$t('app.components.ingestion_source_form.username')}</Label
+				>
+				<Input
+					id="username"
+					bind:value={formData.providerConfig.username}
+					class="col-span-3"
+				/>
+			</div>
+			<div class="grid grid-cols-4 items-center gap-4">
+				<Label for="password" class="text-left">{$t('app.auth.password')}</Label>
+				<Input
+					id="password"
+					type="password"
+					bind:value={formData.providerConfig.password}
+					class="col-span-3"
+				/>
+			</div>
+		{/if}
+		<Alert.Root>
+			<Alert.Title>{$t('app.components.ingestion_source_form.jmap_info_title')}</Alert.Title>
+			<Alert.Description>
+				<div class="my-1">
+					{$t('app.components.ingestion_source_form.jmap_info_description')}
+				</div>
+			</Alert.Description>
+		</Alert.Root>
 	{:else if formData.provider === 'pst_import'}
 		<div class="grid grid-cols-4 items-center gap-4">
 			<Label for="pst-file" class="text-left"

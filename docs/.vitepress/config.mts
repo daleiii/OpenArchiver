@@ -44,6 +44,10 @@ export default defineConfig({
 								link: '/user-guides/email-providers/imap',
 							},
 							{
+								text: 'JMAP (Fastmail, etc.)',
+								link: '/user-guides/email-providers/jmap',
+							},
+							{
 								text: 'Google Workspace',
 								link: '/user-guides/email-providers/google-workspace',
 							},

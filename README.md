@@ -42,6 +42,7 @@ Password: openarchiver_demo
 
 - **Universal Ingestion**: Connect to any email provider to perform initial bulk imports and maintain continuous, real-time synchronization. Ingestion sources include:
     - IMAP connection
+    - JMAP (Fastmail, Stalwart, Cyrus IMAP, etc.)
     - Google Workspace (organization-wide)
     - Gmail (personal accounts)
     - Microsoft 365

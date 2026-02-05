@@ -4,6 +4,7 @@ import type {
 	GmailCredentials,
 	Microsoft365Credentials,
 	GenericImapCredentials,
+	JMAPCredentials,
 	PSTImportCredentials,
 	EMLImportCredentials,
 	MboxImportCredentials,
@@ -15,6 +16,7 @@ import { GoogleWorkspaceConnector } from './ingestion-connectors/GoogleWorkspace
 import { GmailConnector } from './ingestion-connectors/GmailConnector';
 import { MicrosoftConnector } from './ingestion-connectors/MicrosoftConnector';
 import { ImapConnector } from './ingestion-connectors/ImapConnector';
+import { JMAPConnector } from './ingestion-connectors/JMAPConnector';
 import { PSTConnector } from './ingestion-connectors/PSTConnector';
 import { EMLConnector } from './ingestion-connectors/EMLConnector';
 import { MboxConnector } from './ingestion-connectors/MboxConnector';
@@ -45,6 +47,8 @@ export class EmailProviderFactory {
 				return new MicrosoftConnector(credentials as Microsoft365Credentials);
 			case 'generic_imap':
 				return new ImapConnector(credentials as GenericImapCredentials);
+			case 'jmap':
+				return new JMAPConnector(credentials as JMAPCredentials);
 			case 'pst_import':
 				return new PSTConnector(credentials as PSTImportCredentials);
 			case 'eml_import':

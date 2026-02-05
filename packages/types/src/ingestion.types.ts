@@ -19,6 +19,11 @@ export type SyncState = {
 			maxUid: number;
 		};
 	};
+	jmap?: {
+		[accountId: string]: {
+			emailState: string;
+		};
+	};
 	lastSyncTimestamp?: string;
 	statusMessage?: string;
 };
@@ -28,6 +33,7 @@ export type IngestionProvider =
 	| 'gmail'
 	| 'microsoft_365'
 	| 'generic_imap'
+	| 'jmap'
 	| 'pst_import'
 	| 'eml_import'
 	| 'mbox_import';
@@ -106,12 +112,22 @@ export interface MboxImportCredentials extends BaseIngestionCredentials {
 	uploadedFilePath: string;
 }
 
+export interface JMAPCredentials extends BaseIngestionCredentials {
+	type: 'jmap';
+	sessionUrl: string;
+	authMethod: 'basic' | 'bearer';
+	username?: string;
+	password?: string;
+	bearerToken?: string;
+}
+
 // Discriminated union for all possible credential types
 export type IngestionCredentials =
 	| GenericImapCredentials
 	| GoogleWorkspaceCredentials
 	| GmailCredentials
 	| Microsoft365Credentials
+	| JMAPCredentials
 	| PSTImportCredentials
 	| EMLImportCredentials
 	| MboxImportCredentials;
