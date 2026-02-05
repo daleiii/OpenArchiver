@@ -9,23 +9,28 @@ export const createGmailOAuthRouter = (authService: AuthService): Router => {
 	const gmailOAuthController = new GmailOAuthController();
 
 	/**
-	 * @route GET /api/v1/auth/gmail/authorize
-	 * @description Generates Google OAuth authorization URL for Gmail
+	 * @route GET /api/v1/auth/gmail/device
+	 * @description Starts the Device Authorization flow for Gmail
 	 * @access Protected - requires authentication and ingestion create permission
 	 */
 	router.get(
-		'/authorize',
+		'/device',
 		requireAuth(authService),
 		requirePermission('create', 'ingestion'),
-		gmailOAuthController.authorize
+		gmailOAuthController.startDeviceAuth
 	);
 
 	/**
-	 * @route GET /api/v1/auth/gmail/callback
-	 * @description Handles OAuth callback from Google
-	 * @access Public - callback from Google
+	 * @route GET /api/v1/auth/gmail/device/poll
+	 * @description Polls for device authorization completion
+	 * @access Protected - requires authentication and ingestion create permission
 	 */
-	router.get('/callback', gmailOAuthController.callback);
+	router.get(
+		'/device/poll',
+		requireAuth(authService),
+		requirePermission('create', 'ingestion'),
+		gmailOAuthController.pollDeviceAuth
+	);
 
 	return router;
 };

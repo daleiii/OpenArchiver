@@ -3,7 +3,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { MoreHorizontal, Trash, RefreshCw } from 'lucide-svelte';
+	import { MoreHorizontal, Trash, RefreshCw, Loader2, Copy, ExternalLink } from 'lucide-svelte';
 	import * as Dialog from '$lib/components/ui/dialog';
 	import { Switch } from '$lib/components/ui/switch';
 	import { Checkbox } from '$lib/components/ui/checkbox';
@@ -14,39 +14,10 @@
 	import { setAlert } from '$lib/components/custom/alert/alert-state.svelte';
 	import * as HoverCard from '$lib/components/ui/hover-card/index.js';
 	import { t } from '$lib/translations';
-	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { onMount, onDestroy } from 'svelte';
 
 	let { data }: { data: PageData } = $props();
 
-	// Handle Gmail OAuth callback notifications
-	onMount(() => {
-		const gmailAuth = $page.url.searchParams.get('gmail_auth');
-		const message = $page.url.searchParams.get('message');
-
-		if (gmailAuth === 'success') {
-			setAlert({
-				type: 'success',
-				title: $t('app.ingestions.gmail_auth_success_title'),
-				message: $t('app.ingestions.gmail_auth_success_message'),
-				duration: 5000,
-				show: true,
-			});
-			// Remove query params from URL
-			goto('/dashboard/ingestions', { replaceState: true });
-		} else if (gmailAuth === 'error') {
-			setAlert({
-				type: 'error',
-				title: $t('app.ingestions.gmail_auth_error_title'),
-				message: message || $t('app.ingestions.gmail_auth_error_message'),
-				duration: 5000,
-				show: true,
-			});
-			// Remove query params from URL
-			goto('/dashboard/ingestions', { replaceState: true });
-		}
-	});
 	let ingestionSources = $state(data.ingestionSources);
 	let isDialogOpen = $state(false);
 	let isDeleteDialogOpen = $state(false);
@@ -55,6 +26,26 @@
 	let isDeleting = $state(false);
 	let selectedIds = $state<string[]>([]);
 	let isBulkDeleteDialogOpen = $state(false);
+
+	// Gmail Device Auth state
+	let isGmailAuthDialogOpen = $state(false);
+	let gmailAuthData = $state<{
+		userCode: string;
+		verificationUrl: string;
+		deviceCode: string;
+		sourceId: string;
+		expiresIn: number;
+		interval: number;
+	} | null>(null);
+	let gmailAuthStatus = $state<'pending' | 'success' | 'error'>('pending');
+	let gmailAuthMessage = $state('');
+	let pollInterval: ReturnType<typeof setInterval> | null = null;
+
+	onDestroy(() => {
+		if (pollInterval) {
+			clearInterval(pollInterval);
+		}
+	});
 
 	const openCreateDialog = () => {
 		selectedSource = null;
@@ -216,6 +207,95 @@
 		}
 	};
 
+	const startGmailDeviceAuth = async (sourceId: string) => {
+		try {
+			const response = await api(`/auth/gmail/device?sourceId=${sourceId}`);
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.message || 'Failed to start Gmail authorization');
+			}
+			const data = await response.json();
+
+			gmailAuthData = {
+				...data,
+				sourceId,
+			};
+			gmailAuthStatus = 'pending';
+			gmailAuthMessage = '';
+			isGmailAuthDialogOpen = true;
+
+			// Start polling
+			const pollIntervalMs = (data.interval || 5) * 1000;
+			pollInterval = setInterval(() => pollGmailAuth(), pollIntervalMs);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Unknown error';
+			setAlert({
+				type: 'error',
+				title: 'Gmail Authorization Failed',
+				message,
+				duration: 5000,
+				show: true,
+			});
+		}
+	};
+
+	const pollGmailAuth = async () => {
+		if (!gmailAuthData) return;
+
+		try {
+			const response = await api(
+				`/auth/gmail/device/poll?sourceId=${gmailAuthData.sourceId}&deviceCode=${gmailAuthData.deviceCode}`
+			);
+			const data = await response.json();
+
+			if (data.status === 'success') {
+				gmailAuthStatus = 'success';
+				gmailAuthMessage = data.userEmail ? `Connected: ${data.userEmail}` : 'Connected!';
+				if (pollInterval) {
+					clearInterval(pollInterval);
+					pollInterval = null;
+				}
+				// Refresh the ingestion sources list
+				const sourcesResponse = await api('/ingestion-sources');
+				if (sourcesResponse.ok) {
+					ingestionSources = await sourcesResponse.json();
+				}
+			} else if (data.status === 'error') {
+				gmailAuthStatus = 'error';
+				gmailAuthMessage = data.message;
+				if (pollInterval) {
+					clearInterval(pollInterval);
+					pollInterval = null;
+				}
+			}
+			// For 'pending' and 'slow_down', continue polling
+		} catch (error) {
+			console.error('Polling error:', error);
+		}
+	};
+
+	const closeGmailAuthDialog = () => {
+		if (pollInterval) {
+			clearInterval(pollInterval);
+			pollInterval = null;
+		}
+		isGmailAuthDialogOpen = false;
+		gmailAuthData = null;
+	};
+
+	const copyCode = async () => {
+		if (gmailAuthData?.userCode) {
+			await navigator.clipboard.writeText(gmailAuthData.userCode);
+			setAlert({
+				type: 'success',
+				title: 'Copied',
+				message: 'Code copied to clipboard',
+				duration: 2000,
+				show: true,
+			});
+		}
+	};
+
 	const handleFormSubmit = async (formData: CreateIngestionSourceDto) => {
 		try {
 			if (selectedSource) {
@@ -244,20 +324,11 @@
 				}
 				const newSource = await response.json();
 
-				// For Gmail, redirect to OAuth authorization
+				// For Gmail, start the device authorization flow
 				if (formData.provider === 'gmail') {
-					const authResponse = await api(
-						`/auth/gmail/authorize?sourceId=${newSource.id}`
-					);
-					if (!authResponse.ok) {
-						const errorData = await authResponse.json();
-						throw new Error(
-							errorData.message || 'Failed to initiate Gmail authorization.'
-						);
-					}
-					const { authUrl } = await authResponse.json();
-					// Redirect to Google OAuth
-					window.location.href = authUrl;
+					isDialogOpen = false;
+					ingestionSources = [...ingestionSources, newSource];
+					await startGmailDeviceAuth(newSource.id);
 					return;
 				}
 
@@ -497,6 +568,76 @@
 			</Dialog.Description>
 		</Dialog.Header>
 		<IngestionSourceForm source={selectedSource} onSubmit={handleFormSubmit} />
+	</Dialog.Content>
+</Dialog.Root>
+
+<!-- Gmail Device Authorization Dialog -->
+<Dialog.Root bind:open={isGmailAuthDialogOpen} onOpenChange={(open) => !open && closeGmailAuthDialog()}>
+	<Dialog.Content class="sm:max-w-md">
+		<Dialog.Header>
+			<Dialog.Title>Connect Gmail Account</Dialog.Title>
+			<Dialog.Description>
+				{#if gmailAuthStatus === 'pending'}
+					Complete the authorization on Google to connect your Gmail account.
+				{:else if gmailAuthStatus === 'success'}
+					Your Gmail account has been connected successfully!
+				{:else}
+					Authorization failed. Please try again.
+				{/if}
+			</Dialog.Description>
+		</Dialog.Header>
+
+		{#if gmailAuthStatus === 'pending' && gmailAuthData}
+			<div class="space-y-4">
+				<div class="text-center">
+					<p class="text-sm text-muted-foreground mb-2">Enter this code at Google:</p>
+					<div class="flex items-center justify-center gap-2">
+						<code class="text-3xl font-bold tracking-wider bg-muted px-4 py-2 rounded">
+							{gmailAuthData.userCode}
+						</code>
+						<Button variant="outline" size="icon" onclick={copyCode}>
+							<Copy class="h-4 w-4" />
+						</Button>
+					</div>
+				</div>
+
+				<div class="flex justify-center">
+					<Button
+						variant="default"
+						onclick={() => window.open(gmailAuthData?.verificationUrl, '_blank')}
+					>
+						<ExternalLink class="mr-2 h-4 w-4" />
+						Open Google Sign-in
+					</Button>
+				</div>
+
+				<div class="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+					<Loader2 class="h-4 w-4 animate-spin" />
+					Waiting for authorization...
+				</div>
+			</div>
+		{:else if gmailAuthStatus === 'success'}
+			<div class="text-center py-4">
+				<div class="text-green-600 dark:text-green-400 text-lg font-medium">
+					{gmailAuthMessage}
+				</div>
+				<p class="text-sm text-muted-foreground mt-2">
+					Email archiving will begin shortly.
+				</p>
+			</div>
+		{:else if gmailAuthStatus === 'error'}
+			<div class="text-center py-4">
+				<div class="text-red-600 dark:text-red-400">
+					{gmailAuthMessage}
+				</div>
+			</div>
+		{/if}
+
+		<Dialog.Footer>
+			<Button variant="outline" onclick={closeGmailAuthDialog}>
+				{gmailAuthStatus === 'success' ? 'Done' : 'Cancel'}
+			</Button>
+		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
 
