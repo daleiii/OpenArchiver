@@ -15,6 +15,7 @@ export interface SearchHit extends EmailDocument {
 		[key: string]: { start: number; length: number; indices?: number[] }[];
 	};
 	_formatted?: Partial<EmailDocument>;
+	_rankingScore?: number;
 }
 
 export interface SearchResult {
