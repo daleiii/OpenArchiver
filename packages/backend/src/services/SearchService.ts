@@ -83,6 +83,18 @@ export class SearchService {
 		}
 
 		if (filters) {
+			// Email fields that should use CONTAINS for partial matching
+			const partialMatchFields = [
+				'from',
+				'fromName',
+				'to',
+				'toNames',
+				'cc',
+				'ccNames',
+				'bcc',
+				'bccNames',
+			];
+
 			const filterStrings = Object.entries(filters).map(([key, value]) => {
 				// Handle comparison operators for date range filters
 				if (key.endsWith('_gte')) {
@@ -93,7 +105,11 @@ export class SearchService {
 					const field = key.replace('_lte', '');
 					return `${field} <= ${value}`;
 				}
-				// Standard equality filter
+				// Use CONTAINS for email fields (partial matching)
+				if (partialMatchFields.includes(key) && typeof value === 'string') {
+					return `${key} CONTAINS '${value}'`;
+				}
+				// Standard equality filter for other fields
 				if (typeof value === 'string') {
 					return `${key} = '${value}'`;
 				}
