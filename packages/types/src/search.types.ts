@@ -1,6 +1,7 @@
 import type { EmailDocument } from './email.types';
 
 export type MatchingStrategy = 'last' | 'all' | 'frequency';
+export type SearchSort = 'relevance' | 'date_desc' | 'date_asc';
 
 export interface SearchQuery {
 	query: string;
@@ -8,6 +9,7 @@ export interface SearchQuery {
 	page?: number;
 	limit?: number;
 	matchingStrategy?: MatchingStrategy;
+	sort?: SearchSort;
 }
 
 export interface SearchHit extends EmailDocument {
