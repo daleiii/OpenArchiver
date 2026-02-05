@@ -15,7 +15,7 @@
 	} satisfies ChartConfig;
 </script>
 
-<Chart.Container config={chartConfig} class="min-h-[300px] w-full">
+<Chart.Container config={chartConfig} class="min-h-[300px] w-full pl-4">
 	<AreaChart
 		{data}
 		x="date"
