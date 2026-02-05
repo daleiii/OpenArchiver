@@ -357,19 +357,24 @@ export class IndexingService {
 				);
 			}
 		}
-		// console.log('email.userEmail', userEmail);
 		return {
 			id: archivedEmailId,
 			userEmail: userEmail,
-			from: email.from[0]?.address,
+			from: email.from[0]?.address || '',
+			fromName: email.from[0]?.name || '',
 			to: email.to.map((i: EmailAddress) => i.address) || [],
+			toNames: email.to.map((i: EmailAddress) => i.name || '') || [],
 			cc: email.cc?.map((i: EmailAddress) => i.address) || [],
+			ccNames: email.cc?.map((i: EmailAddress) => i.name || '') || [],
 			bcc: email.bcc?.map((i: EmailAddress) => i.address) || [],
+			bccNames: email.bcc?.map((i: EmailAddress) => i.name || '') || [],
 			subject: email.subject || '',
 			body: email.body || email.html || '',
 			attachments: extractedAttachments,
 			timestamp: new Date(email.receivedAt).getTime(),
 			ingestionSourceId: ingestionSourceId,
+			threadId: email.threadId,
+			tags: email.tags || [],
 		};
 	}
 
@@ -390,19 +395,25 @@ export class IndexingService {
 			'';
 
 		const recipients = email.recipients as DbRecipients;
-		// console.log('email.userEmail', email.userEmail);
+		const tags = (email.tags as string[]) || [];
 		return {
 			id: email.id,
 			userEmail: userEmail,
 			from: email.senderEmail,
+			fromName: email.senderName || '',
 			to: recipients.to?.map((r) => r.address) || [],
+			toNames: recipients.to?.map((r) => r.name || '') || [],
 			cc: recipients.cc?.map((r) => r.address) || [],
+			ccNames: recipients.cc?.map((r) => r.name || '') || [],
 			bcc: recipients.bcc?.map((r) => r.address) || [],
+			bccNames: recipients.bcc?.map((r) => r.name || '') || [],
 			subject: email.subject || '',
 			body: emailBodyText,
 			attachments: attachmentContents,
 			timestamp: new Date(email.sentAt).getTime(),
 			ingestionSourceId: email.ingestionSourceId,
+			threadId: email.threadId || undefined,
+			tags: tags,
 		};
 	}
 
@@ -485,14 +496,20 @@ export class IndexingService {
 			id: doc.id || 'missing-id',
 			userEmail: doc.userEmail || 'unknown',
 			from: doc.from || '',
+			fromName: doc.fromName || '',
 			to: Array.isArray(doc.to) ? doc.to : [],
+			toNames: Array.isArray(doc.toNames) ? doc.toNames : [],
 			cc: Array.isArray(doc.cc) ? doc.cc : [],
+			ccNames: Array.isArray(doc.ccNames) ? doc.ccNames : [],
 			bcc: Array.isArray(doc.bcc) ? doc.bcc : [],
+			bccNames: Array.isArray(doc.bccNames) ? doc.bccNames : [],
 			subject: doc.subject || '',
 			body: doc.body || '',
 			attachments: Array.isArray(doc.attachments) ? doc.attachments : [],
 			timestamp: typeof doc.timestamp === 'number' ? doc.timestamp : Date.now(),
 			ingestionSourceId: doc.ingestionSourceId || 'unknown',
+			threadId: doc.threadId,
+			tags: Array.isArray(doc.tags) ? doc.tags : [],
 		};
 	}
 

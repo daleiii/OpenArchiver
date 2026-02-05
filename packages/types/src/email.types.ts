@@ -72,9 +72,13 @@ export interface EmailDocument {
 	id: string; // The unique ID of the email
 	userEmail: string;
 	from: string;
+	fromName: string; // Sender's display name
 	to: string[];
+	toNames: string[]; // Recipients' display names
 	cc: string[];
+	ccNames: string[]; // CC recipients' display names
 	bcc: string[];
+	bccNames: string[]; // BCC recipients' display names
 	subject: string;
 	body: string;
 	attachments: {
@@ -83,5 +87,6 @@ export interface EmailDocument {
 	}[];
 	timestamp: number;
 	ingestionSourceId: string;
-	// other metadata
+	threadId?: string; // Thread/conversation ID for grouping related emails
+	tags: string[]; // Labels, flags, or tags from the email provider
 }
