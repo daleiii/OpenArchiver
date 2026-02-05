@@ -20,6 +20,8 @@
 			"meta_data": "Meta Data",
 			"folder": "Folder",
 			"tags": "Tags",
+			"thread": "Thread",
+			"view_thread": "View all emails in thread",
 			"size": "Size",
 			"email_preview": "Email Preview",
 			"attachments": "Attachments",

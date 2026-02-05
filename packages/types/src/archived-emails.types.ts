@@ -29,6 +29,7 @@ export interface ThreadEmail {
  */
 export interface ArchivedEmail {
 	id: string;
+	threadId: string | null;
 	ingestionSourceId: string;
 	userEmail: string;
 	messageIdHeader: string | null;

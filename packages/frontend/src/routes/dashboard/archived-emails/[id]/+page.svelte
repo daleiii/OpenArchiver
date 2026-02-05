@@ -108,21 +108,41 @@
 						<div class=" space-y-1">
 							<h3 class="font-semibold">{$t('app.archive.meta_data')}</h3>
 							<Card.Description class="space-y-2">
+								{#if email.threadId}
+									<div class="flex flex-wrap items-center gap-2">
+										<span>{$t('app.archive.thread')}:</span>
+										<a
+											href="/dashboard/search?keywords=*&threadId={encodeURIComponent(
+												email.threadId
+											)}"
+											class="bg-primary/10 text-primary hover:bg-primary/20 truncate rounded p-1.5 text-xs underline-offset-2 hover:underline"
+										>
+											{$t('app.archive.view_thread')}
+										</a>
+									</div>
+								{/if}
 								{#if email.path}
 									<div class="flex flex-wrap items-center gap-2">
 										<span>{$t('app.archive.folder')}:</span>
-										<span class="  bg-muted truncate rounded p-1.5 text-xs"
+										<span class="bg-muted truncate rounded p-1.5 text-xs"
 											>{email.path || '/'}</span
 										>
 									</div>
 								{/if}
 								{#if email.tags && email.tags.length > 0}
 									<div class="flex flex-wrap items-center gap-2">
-										<span> {$t('app.archive.tags')}: </span>
+										<span>{$t('app.archive.tags')}:</span>
 										{#each email.tags as tag}
-											<span class="  bg-muted truncate rounded p-1.5 text-xs"
-												>{tag}</span
+											<button
+												type="button"
+												onclick={() =>
+													goto(
+														`/dashboard/search?keywords=*&tags=${encodeURIComponent(tag)}`
+													)}
+												class="bg-muted hover:bg-muted/80 cursor-pointer truncate rounded p-1.5 text-xs"
 											>
+												{tag}
+											</button>
 										{/each}
 									</div>
 								{/if}

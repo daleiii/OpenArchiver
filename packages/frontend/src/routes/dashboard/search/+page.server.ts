@@ -10,6 +10,8 @@ interface SearchFilters {
 	bcc?: string;
 	dateFrom?: string;
 	dateTo?: string;
+	threadId?: string;
+	tags?: string;
 }
 
 async function performSearch(
@@ -46,6 +48,8 @@ async function performSearch(
 		if (filters.to) params.set('filters[to]', filters.to);
 		if (filters.cc) params.set('filters[cc]', filters.cc);
 		if (filters.bcc) params.set('filters[bcc]', filters.bcc);
+		if (filters.threadId) params.set('filters[threadId]', filters.threadId);
+		if (filters.tags) params.set('filters[tags]', filters.tags);
 
 		// Date filters need to be converted to timestamp comparisons
 		if (filters.dateFrom) {
@@ -108,6 +112,8 @@ export const load: PageServerLoad = async (event) => {
 		bcc: event.url.searchParams.get('bcc') || undefined,
 		dateFrom: event.url.searchParams.get('dateFrom') || undefined,
 		dateTo: event.url.searchParams.get('dateTo') || undefined,
+		threadId: event.url.searchParams.get('threadId') || undefined,
+		tags: event.url.searchParams.get('tags') || undefined,
 	};
 
 	return performSearch(keywords, page, limit, matchingStrategy, sort, filters, event);
