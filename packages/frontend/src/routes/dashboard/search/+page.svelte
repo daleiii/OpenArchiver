@@ -78,9 +78,25 @@
 	const hasActiveFilters = $derived(activeFilterCount > 0);
 
 	let isMounted = $state(false);
+
 	onMount(() => {
 		isMounted = true;
 	});
+
+	// Auto-search when sort or limit changes (only if results exist)
+	function handleSortChange(newSort: string) {
+		sort = newSort as SearchSort;
+		if (searchResult && keywords) {
+			goto(buildSearchUrl(1), { keepFocus: true });
+		}
+	}
+
+	function handleLimitChange(newLimit: string | number) {
+		limit = typeof newLimit === 'string' ? parseInt(newLimit, 10) : newLimit;
+		if (searchResult && keywords) {
+			goto(buildSearchUrl(1), { keepFocus: true });
+		}
+	}
 
 	function shadowRender(node: HTMLElement, html: string | undefined) {
 		if (html === undefined) return;
@@ -372,7 +388,7 @@
 			<div class="flex items-center gap-4">
 				<div class="flex items-center gap-2">
 					<span class="text-muted-foreground text-sm">{$t('app.search.sort_by')}</span>
-					<Select.Root type="single" bind:value={sort}>
+					<Select.Root type="single" value={sort} onValueChange={handleSortChange}>
 						<Select.Trigger class="w-32 cursor-pointer">
 							{sortTriggerContent}
 						</Select.Trigger>
@@ -387,7 +403,7 @@
 				</div>
 				<div class="flex items-center gap-2">
 					<span class="text-muted-foreground text-sm">{$t('app.search.show')}</span>
-					<Select.Root type="single" bind:value={limit}>
+					<Select.Root type="single" value={limit} onValueChange={handleLimitChange}>
 						<Select.Trigger class="w-20 cursor-pointer">
 							{limit}
 						</Select.Trigger>
