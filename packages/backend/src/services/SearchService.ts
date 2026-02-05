@@ -62,7 +62,7 @@ export class SearchService {
 		userId: string,
 		actorIp: string
 	): Promise<SearchResult> {
-		const { query, filters, page = 1, limit = 10, matchingStrategy = 'last' } = dto;
+		const { query, filters, page = 1, limit = 10, matchingStrategy = 'last', sort } = dto;
 		const index = await this.getIndex<EmailDocument>('emails');
 
 		const searchParams: SearchParams = {
@@ -71,9 +71,16 @@ export class SearchService {
 			attributesToHighlight: ['*'],
 			showMatchesPosition: true,
 			showRankingScore: true,
-			sort: ['timestamp:desc'],
 			matchingStrategy,
 		};
+
+		// Apply sort - 'relevance' means no sort (Meilisearch defaults to relevance)
+		if (sort === 'date_asc') {
+			searchParams.sort = ['timestamp:asc'];
+		} else if (sort !== 'relevance') {
+			// Default to date_desc if not relevance
+			searchParams.sort = ['timestamp:desc'];
+		}
 
 		if (filters) {
 			const filterStrings = Object.entries(filters).map(([key, value]) => {
@@ -123,6 +130,7 @@ export class SearchService {
 				page,
 				limit,
 				matchingStrategy,
+				sort,
 			},
 		});
 
