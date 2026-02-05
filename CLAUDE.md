@@ -101,12 +101,14 @@ Follow [Conventional Commits](https://conventionalcommits.org) format:
 **Scopes**: `backend`, `frontend`, `types`, `docs`, `db`, `api`, `ingestion`, `search`, `auth`
 
 **Examples**:
+
 - `feat(ingestion): add JMAP email provider support`
 - `fix(api): handle null response in search endpoint`
 - `docs: update installation guide`
 - `refactor(backend): extract email parsing to helper`
 
 **Commit frequently and atomically**:
+
 - Each commit should represent a single logical change
 - Commit after completing each distinct piece of work (e.g., adding a type, implementing a function, updating tests)
 - Don't bundle unrelated changes in one commit

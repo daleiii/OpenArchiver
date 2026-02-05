@@ -40,7 +40,9 @@ export class GmailOAuthController {
 			}
 
 			if (source.provider !== 'gmail') {
-				return res.status(400).json({ message: 'Ingestion source is not a Gmail provider' });
+				return res
+					.status(400)
+					.json({ message: 'Ingestion source is not a Gmail provider' });
 			}
 
 			const oauth2Client = new google.auth.OAuth2(
@@ -95,7 +97,9 @@ export class GmailOAuthController {
 			}
 
 			if (source.provider !== 'gmail') {
-				return res.status(400).json({ message: 'Ingestion source is not a Gmail provider' });
+				return res
+					.status(400)
+					.json({ message: 'Ingestion source is not a Gmail provider' });
 			}
 
 			const oauth2Client = new google.auth.OAuth2(

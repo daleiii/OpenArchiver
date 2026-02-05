@@ -541,7 +541,10 @@
 </Dialog.Root>
 
 <!-- Gmail OAuth Authorization Dialog -->
-<Dialog.Root bind:open={isGmailAuthDialogOpen} onOpenChange={(open) => !open && closeGmailAuthDialog()}>
+<Dialog.Root
+	bind:open={isGmailAuthDialogOpen}
+	onOpenChange={(open) => !open && closeGmailAuthDialog()}
+>
 	<Dialog.Content class="sm:max-w-md">
 		<Dialog.Header>
 			<Dialog.Title>Connect Gmail Account</Dialog.Title>
@@ -560,8 +563,9 @@
 			<div class="space-y-4">
 				<div class="space-y-2">
 					<p class="text-sm font-medium">Step 1: Open Google Authorization</p>
-					<p class="text-sm text-muted-foreground">
-						Click the button below to sign in with Google. After authorizing, you'll be redirected to a page that won't load - this is expected.
+					<p class="text-muted-foreground text-sm">
+						Click the button below to sign in with Google. After authorizing, you'll be
+						redirected to a page that won't load - this is expected.
 					</p>
 					<Button
 						variant="default"
@@ -575,11 +579,16 @@
 
 				<div class="space-y-2">
 					<p class="text-sm font-medium">Step 2: Copy the code from the URL</p>
-					<p class="text-sm text-muted-foreground">
-						After authorizing, copy the <code class="bg-muted px-1 rounded">code=</code> value from your browser's address bar and paste it below.
+					<p class="text-muted-foreground text-sm">
+						After authorizing, copy the <code class="bg-muted rounded px-1">code=</code>
+						value from your browser's address bar and paste it below.
 					</p>
-					<div class="text-xs text-muted-foreground bg-muted p-2 rounded font-mono break-all">
-						http://localhost:4000/...?code=<span class="text-primary font-bold">4/0XXXXX...</span>&scope=...
+					<div
+						class="text-muted-foreground bg-muted break-all rounded p-2 font-mono text-xs"
+					>
+						http://localhost:4000/...?code=<span class="text-primary font-bold"
+							>4/0XXXXX...</span
+						>&scope=...
 					</div>
 				</div>
 
@@ -594,17 +603,19 @@
 				</div>
 			</div>
 		{:else if gmailAuthStatus === 'success'}
-			<div class="text-center py-4">
-				<div class="flex items-center justify-center gap-2 text-green-600 dark:text-green-400 text-lg font-medium">
+			<div class="py-4 text-center">
+				<div
+					class="flex items-center justify-center gap-2 text-lg font-medium text-green-600 dark:text-green-400"
+				>
 					<Check class="h-5 w-5" />
 					{gmailAuthMessage}
 				</div>
-				<p class="text-sm text-muted-foreground mt-2">
+				<p class="text-muted-foreground mt-2 text-sm">
 					Email archiving will begin shortly.
 				</p>
 			</div>
 		{:else if gmailAuthStatus === 'error'}
-			<div class="text-center py-4">
+			<div class="py-4 text-center">
 				<div class="text-red-600 dark:text-red-400">
 					{gmailAuthMessage}
 				</div>

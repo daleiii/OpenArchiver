@@ -218,10 +218,7 @@ export class GmailConnector implements IEmailConnector {
 			format: 'METADATA',
 			fields: 'labelIds',
 		});
-		const labels = await this.getLabelDetails(
-			gmail,
-			metadataResponse.data.labelIds || []
-		);
+		const labels = await this.getLabelDetails(gmail, metadataResponse.data.labelIds || []);
 
 		const msgResponse = await gmail.users.messages.get({
 			userId: 'me',

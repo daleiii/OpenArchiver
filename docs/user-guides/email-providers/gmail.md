@@ -39,18 +39,18 @@ Open Archiver uses OAuth 2.0 to securely connect to your Gmail account. The conn
 2. Select **External** as the user type (unless you have a Google Workspace organization)
 3. Click **Create**
 4. Fill in the required fields:
-   - **App name**: Open Archiver (or your preferred name)
-   - **User support email**: Your email address
-   - **Developer contact information**: Your email address
+    - **App name**: Open Archiver (or your preferred name)
+    - **User support email**: Your email address
+    - **Developer contact information**: Your email address
 5. Click **Save and Continue**
 
 ### Add Required Scopes
 
 1. Click **Add or Remove Scopes**
 2. Add the following scopes:
-   - `https://www.googleapis.com/auth/gmail.readonly` - View your email messages and settings
-   - `https://www.googleapis.com/auth/userinfo.email` - See your primary Google Account email address
-   - `https://www.googleapis.com/auth/userinfo.profile` - See your personal info
+    - `https://www.googleapis.com/auth/gmail.readonly` - View your email messages and settings
+    - `https://www.googleapis.com/auth/userinfo.email` - See your primary Google Account email address
+    - `https://www.googleapis.com/auth/userinfo.profile` - See your personal info
 3. Click **Update** and then **Save and Continue**
 
 ### Add Test Users
@@ -72,9 +72,9 @@ You can keep your app in "Testing" mode for personal use with up to 100 test use
 3. Select **Web application** as the application type
 4. Enter a name (e.g., "Open Archiver Web Client")
 5. Under **Authorized redirect URIs**, add:
-   ```
-   http://localhost:4000/api/v1/auth/gmail/callback
-   ```
+    ```
+    http://localhost:4000/api/v1/auth/gmail/callback
+    ```
 6. Click **Create**
 7. Copy the **Client ID** and **Client Secret** - you'll need these for Open Archiver
 
@@ -116,10 +116,12 @@ A dialog will appear with authorization instructions:
 2. **Authorize the application** - Sign in with your Gmail account and grant the requested permissions
 
 3. **Copy the authorization code** - After authorizing, you'll be redirected to a page that won't load (this is expected). Look at your browser's address bar - it will show a URL like:
-   ```
-   http://localhost:4000/api/v1/auth/gmail/callback?code=4/0AQSTgQGx...&scope=...
-   ```
-   Copy the value after `code=` and before `&scope=`
+
+    ```
+    http://localhost:4000/api/v1/auth/gmail/callback?code=4/0AQSTgQGx...&scope=...
+    ```
+
+    Copy the value after `code=` and before `&scope=`
 
 4. **Paste the code** - Return to Open Archiver and paste the code into the input field
 
@@ -138,6 +140,7 @@ This error occurs when Google doesn't provide a refresh token. To fix this:
 ### "Invalid or expired code"
 
 Authorization codes expire quickly. Make sure to:
+
 - Complete the authorization process without delays
 - Copy the entire code value (it can be quite long)
 - Paste it immediately into Open Archiver
@@ -145,6 +148,7 @@ Authorization codes expire quickly. Make sure to:
 ### "Access blocked: App not verified"
 
 If you see this warning:
+
 1. Click **Advanced** → **Go to [App Name] (unsafe)**
 2. Continue with the authorization
 
