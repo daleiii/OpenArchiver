@@ -216,7 +216,8 @@
 			},
 			"footer": {
 				"all_rights_reserved": "All rights reserved.",
-				"new_version_available": "New version available"
+				"new_version_available": "New version available",
+				"upstream_update_available": "Upstream update available:"
 			},
 			"ingestion_source_form": {
 				"provider_generic_imap": "Generic IMAP",
