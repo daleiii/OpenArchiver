@@ -1,7 +1,7 @@
 import type { PageServerLoad, RequestEvent } from './$types';
 import { api } from '$lib/server/api';
 import type { SearchResult } from '@open-archiver/types';
-import type { MatchingStrategy } from '@open-archiver/types';
+import type { MatchingStrategy, SearchSort } from '@open-archiver/types';
 
 interface SearchFilters {
 	from?: string;
@@ -17,6 +17,7 @@ async function performSearch(
 	page: number,
 	limit: number,
 	matchingStrategy: MatchingStrategy,
+	sort: SearchSort,
 	filters: SearchFilters,
 	event: RequestEvent
 ) {
@@ -27,6 +28,7 @@ async function performSearch(
 			page: 1,
 			limit,
 			matchingStrategy: 'last',
+			sort: 'date_desc',
 			filters: {},
 		};
 	}
@@ -37,6 +39,7 @@ async function performSearch(
 		params.set('page', String(page));
 		params.set('limit', String(limit));
 		params.set('matchingStrategy', matchingStrategy);
+		params.set('sort', sort);
 
 		// Add filters
 		if (filters.from) params.set('filters[from]', filters.from);
@@ -68,13 +71,14 @@ async function performSearch(
 				page,
 				limit,
 				matchingStrategy,
+				sort,
 				filters,
 				error: error.message,
 			};
 		}
 
 		const searchResult = (await response.json()) as SearchResult;
-		return { searchResult, keywords, page, limit, matchingStrategy, filters };
+		return { searchResult, keywords, page, limit, matchingStrategy, sort, filters };
 	} catch (error) {
 		return {
 			searchResult: null,
@@ -82,6 +86,7 @@ async function performSearch(
 			page,
 			limit,
 			matchingStrategy,
+			sort,
 			filters,
 			error: error instanceof Error ? error.message : 'Unknown error',
 		};
@@ -94,6 +99,7 @@ export const load: PageServerLoad = async (event) => {
 	const limit = parseInt(event.url.searchParams.get('limit') || '10');
 	const matchingStrategy = (event.url.searchParams.get('matchingStrategy') ||
 		'last') as MatchingStrategy;
+	const sort = (event.url.searchParams.get('sort') || 'date_desc') as SearchSort;
 
 	const filters: SearchFilters = {
 		from: event.url.searchParams.get('from') || undefined,
@@ -104,5 +110,5 @@ export const load: PageServerLoad = async (event) => {
 		dateTo: event.url.searchParams.get('dateTo') || undefined,
 	};
 
-	return performSearch(keywords, page, limit, matchingStrategy, filters, event);
+	return performSearch(keywords, page, limit, matchingStrategy, sort, filters, event);
 };

@@ -15,7 +15,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { Skeleton } from '$lib/components/ui/skeleton';
-	import type { MatchingStrategy } from '@open-archiver/types';
+	import type { MatchingStrategy, SearchSort } from '@open-archiver/types';
 	import CircleAlertIcon from '@lucide/svelte/icons/circle-alert';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
@@ -38,6 +38,7 @@
 
 	// Filter state
 	let limit = $state(data.limit || 10);
+	let sort: SearchSort = $state((data.sort as SearchSort) || 'date_desc');
 	let filterFrom = $state(data.filters?.from || '');
 	let filterTo = $state(data.filters?.to || '');
 	let filterCc = $state(data.filters?.cc || '');
@@ -55,6 +56,16 @@
 	];
 
 	const limitOptions = [10, 25, 50];
+
+	const sortOptions = [
+		{ value: 'date_desc', label: $t('app.search.sort_newest') },
+		{ value: 'date_asc', label: $t('app.search.sort_oldest') },
+		{ value: 'relevance', label: $t('app.search.sort_relevance') },
+	];
+
+	const sortTriggerContent = $derived(
+		sortOptions.find((s) => s.value === sort)?.label ?? $t('app.search.sort_newest')
+	);
 
 	const triggerContent = $derived(
 		strategies.find((s) => s.value === matchingStrategy)?.label ??
@@ -96,6 +107,7 @@
 		params.set('page', String(pageNum));
 		params.set('limit', String(limit));
 		params.set('matchingStrategy', matchingStrategy);
+		params.set('sort', sort);
 		if (filterFrom) params.set('from', filterFrom);
 		if (filterTo) params.set('to', filterTo);
 		if (filterCc) params.set('cc', filterCc);
@@ -357,19 +369,36 @@
 					{$t('app.search.found_results', { total: searchResult.total } as any)}
 				{/if}
 			</p>
-			<div class="flex items-center gap-2">
-				<span class="text-muted-foreground text-sm">{$t('app.search.show')}</span>
-				<Select.Root type="single" bind:value={limit}>
-					<Select.Trigger class="w-20 cursor-pointer">
-						{limit}
-					</Select.Trigger>
-					<Select.Content>
-						{#each limitOptions as opt}
-							<Select.Item value={opt} class="cursor-pointer">{opt}</Select.Item>
-						{/each}
-					</Select.Content>
-				</Select.Root>
-				<span class="text-muted-foreground text-sm">{$t('app.search.per_page')}</span>
+			<div class="flex items-center gap-4">
+				<div class="flex items-center gap-2">
+					<span class="text-muted-foreground text-sm">{$t('app.search.sort_by')}</span>
+					<Select.Root type="single" bind:value={sort}>
+						<Select.Trigger class="w-32 cursor-pointer">
+							{sortTriggerContent}
+						</Select.Trigger>
+						<Select.Content>
+							{#each sortOptions as opt}
+								<Select.Item value={opt.value} class="cursor-pointer"
+									>{opt.label}</Select.Item
+								>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+				</div>
+				<div class="flex items-center gap-2">
+					<span class="text-muted-foreground text-sm">{$t('app.search.show')}</span>
+					<Select.Root type="single" bind:value={limit}>
+						<Select.Trigger class="w-20 cursor-pointer">
+							{limit}
+						</Select.Trigger>
+						<Select.Content>
+							{#each limitOptions as opt}
+								<Select.Item value={opt} class="cursor-pointer">{opt}</Select.Item>
+							{/each}
+						</Select.Content>
+					</Select.Root>
+					<span class="text-muted-foreground text-sm">{$t('app.search.per_page')}</span>
+				</div>
 			</div>
 		</div>
 
