@@ -95,6 +95,12 @@ export class SearchService {
 				'bccNames',
 			];
 
+			// Escape special characters in filter values for Meilisearch
+			const escapeFilterValue = (val: string): string => {
+				// Escape single quotes and backslashes
+				return val.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+			};
+
 			const filterStrings = Object.entries(filters).map(([key, value]) => {
 				// Handle comparison operators for date range filters
 				if (key.endsWith('_gte')) {
@@ -107,11 +113,11 @@ export class SearchService {
 				}
 				// Use CONTAINS for email fields (partial matching)
 				if (partialMatchFields.includes(key) && typeof value === 'string') {
-					return `${key} CONTAINS '${value}'`;
+					return `${key} CONTAINS '${escapeFilterValue(value)}'`;
 				}
 				// Standard equality filter for other fields
 				if (typeof value === 'string') {
-					return `${key} = '${value}'`;
+					return `${key} = '${escapeFilterValue(value)}'`;
 				}
 				return `${key} = ${value}`;
 			});

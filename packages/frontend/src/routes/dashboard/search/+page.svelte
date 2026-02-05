@@ -22,6 +22,7 @@
 	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 	import HelpCircle from 'lucide-svelte/icons/help-circle';
 	import SearchX from 'lucide-svelte/icons/search-x';
+	import X from 'lucide-svelte/icons/x';
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import { t } from '$lib/translations';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
@@ -45,6 +46,8 @@
 	let dateFrom = $state(data.filters?.dateFrom || '');
 	let dateTo = $state(data.filters?.dateTo || '');
 	let hasAttachments = $state(data.filters?.hasAttachments || '');
+	let threadId = $state(data.filters?.threadId || '');
+	let tags = $state(data.filters?.tags || '');
 
 	// UI state
 	let optionsOpen = $state(false);
@@ -84,11 +87,20 @@
 	);
 
 	const activeFilterCount = $derived(
-		[filterFrom, filterTo, filterCc, filterBcc, dateFrom, dateTo, hasAttachments].filter(
-			Boolean
-		).length
+		[
+			filterFrom,
+			filterTo,
+			filterCc,
+			filterBcc,
+			dateFrom,
+			dateTo,
+			hasAttachments,
+			threadId,
+			tags,
+		].filter(Boolean).length
 	);
 	const hasActiveFilters = $derived(activeFilterCount > 0);
+	const hasHiddenFilters = $derived(Boolean(threadId || tags));
 
 	let isMounted = $state(false);
 
@@ -145,6 +157,8 @@
 		if (dateFrom) params.set('dateFrom', dateFrom);
 		if (dateTo) params.set('dateTo', dateTo);
 		if (hasAttachments) params.set('hasAttachments', hasAttachments);
+		if (threadId) params.set('threadId', threadId);
+		if (tags) params.set('tags', tags);
 		return `/dashboard/search?${params.toString()}`;
 	}
 
@@ -161,6 +175,8 @@
 		dateFrom = '';
 		dateTo = '';
 		hasAttachments = '';
+		threadId = '';
+		tags = '';
 	}
 
 	// Debounced auto-search when keywords or filters change
@@ -177,6 +193,8 @@
 			dateFrom,
 			dateTo,
 			hasAttachments,
+			threadId,
+			tags,
 		];
 		// Use void to ensure we're reading the values for reactivity
 		void searchValues;
@@ -293,6 +311,49 @@
 				{$t('app.search.search_button')}
 			</Button>
 		</div>
+
+		<!-- Active hidden filters (threadId, tags) -->
+		{#if hasHiddenFilters}
+			<div class="flex flex-wrap items-center gap-2">
+				<span class="text-muted-foreground text-sm">{$t('app.search.active_filters')}:</span>
+				{#if threadId}
+					<span
+						class="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm"
+					>
+						{$t('app.search.filter_thread')}: {threadId.length > 20
+							? threadId.slice(0, 20) + '...'
+							: threadId}
+						<button
+							type="button"
+							onclick={() => {
+								threadId = '';
+								goto(buildSearchUrl(1), { keepFocus: true });
+							}}
+							class="hover:bg-primary/20 rounded-full p-0.5"
+						>
+							<X class="h-3 w-3" />
+						</button>
+					</span>
+				{/if}
+				{#if tags}
+					<span
+						class="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm"
+					>
+						{$t('app.search.filter_tag')}: {tags}
+						<button
+							type="button"
+							onclick={() => {
+								tags = '';
+								goto(buildSearchUrl(1), { keepFocus: true });
+							}}
+							class="hover:bg-primary/20 rounded-full p-0.5"
+						>
+							<X class="h-3 w-3" />
+						</button>
+					</span>
+				{/if}
+			</div>
+		{/if}
 
 		<!-- Collapsible Search Options -->
 		<div class="rounded-lg border">
