@@ -90,6 +90,13 @@ export class IngestionService {
 				'Failed to process newly created ingestion source due to a decryption error.'
 			);
 		}
+
+		// For Gmail OAuth, skip the test connection step.
+		// The OAuth flow will complete separately and update the credentials.
+		if (dto.provider === 'gmail') {
+			return decryptedSource;
+		}
+
 		const connector = EmailProviderFactory.createConnector(decryptedSource);
 
 		try {

@@ -8,6 +8,7 @@ import { StorageController } from './controllers/storage.controller';
 import { SearchController } from './controllers/search.controller';
 import { IamController } from './controllers/iam.controller';
 import { createAuthRouter } from './routes/auth.routes';
+import { createGmailOAuthRouter } from './routes/gmail-oauth.routes';
 import { createIamRouter } from './routes/iam.routes';
 import { createIngestionRouter } from './routes/ingestion.routes';
 import { createArchivedEmailRouter } from './routes/archived-email.routes';
@@ -111,6 +112,7 @@ export async function createServer(modules: ArchiverModule[] = []): Promise<Expr
 
 	// --- Routes ---
 	const authRouter = createAuthRouter(authController);
+	const gmailOAuthRouter = createGmailOAuthRouter(authService);
 	const ingestionRouter = createIngestionRouter(ingestionController, authService);
 	const archivedEmailRouter = createArchivedEmailRouter(archivedEmailController, authService);
 	const storageRouter = createStorageRouter(storageController, authService);
@@ -142,6 +144,7 @@ export async function createServer(modules: ArchiverModule[] = []): Promise<Expr
 	app.use(i18nextMiddleware.handle(i18next));
 
 	app.use(`/${config.api.version}/auth`, authRouter);
+	app.use(`/${config.api.version}/auth/gmail`, gmailOAuthRouter);
 	app.use(`/${config.api.version}/iam`, iamRouter);
 	app.use(`/${config.api.version}/upload`, uploadRouter);
 	app.use(`/${config.api.version}/ingestion-sources`, ingestionRouter);

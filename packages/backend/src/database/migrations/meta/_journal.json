@@ -169,6 +169,13 @@
 			"when": 1760354094610,
 			"tag": "0023_swift_swordsman",
 			"breakpoints": true
+		},
+		{
+			"idx": 24,
+			"version": "7",
+			"when": 1760400000000,
+			"tag": "0024_gmail_oauth_provider",
+			"breakpoints": true
 		}
 	]
 }

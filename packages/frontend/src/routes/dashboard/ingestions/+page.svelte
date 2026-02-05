@@ -14,8 +14,39 @@
 	import { setAlert } from '$lib/components/custom/alert/alert-state.svelte';
 	import * as HoverCard from '$lib/components/ui/hover-card/index.js';
 	import { t } from '$lib/translations';
+	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 
 	let { data }: { data: PageData } = $props();
+
+	// Handle Gmail OAuth callback notifications
+	onMount(() => {
+		const gmailAuth = $page.url.searchParams.get('gmail_auth');
+		const message = $page.url.searchParams.get('message');
+
+		if (gmailAuth === 'success') {
+			setAlert({
+				type: 'success',
+				title: $t('app.ingestions.gmail_auth_success_title'),
+				message: $t('app.ingestions.gmail_auth_success_message'),
+				duration: 5000,
+				show: true,
+			});
+			// Remove query params from URL
+			goto('/dashboard/ingestions', { replaceState: true });
+		} else if (gmailAuth === 'error') {
+			setAlert({
+				type: 'error',
+				title: $t('app.ingestions.gmail_auth_error_title'),
+				message: message || $t('app.ingestions.gmail_auth_error_message'),
+				duration: 5000,
+				show: true,
+			});
+			// Remove query params from URL
+			goto('/dashboard/ingestions', { replaceState: true });
+		}
+	});
 	let ingestionSources = $state(data.ingestionSources);
 	let isDialogOpen = $state(false);
 	let isDeleteDialogOpen = $state(false);
@@ -212,6 +243,24 @@
 					throw new Error(errorData.message || 'Failed to create source.');
 				}
 				const newSource = await response.json();
+
+				// For Gmail, redirect to OAuth authorization
+				if (formData.provider === 'gmail') {
+					const authResponse = await api(
+						`/auth/gmail/authorize?sourceId=${newSource.id}`
+					);
+					if (!authResponse.ok) {
+						const errorData = await authResponse.json();
+						throw new Error(
+							errorData.message || 'Failed to initiate Gmail authorization.'
+						);
+					}
+					const { authUrl } = await authResponse.json();
+					// Redirect to Google OAuth
+					window.location.href = authUrl;
+					return;
+				}
+
 				ingestionSources = [...ingestionSources, newSource];
 			}
 			isDialogOpen = false;

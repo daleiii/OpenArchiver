@@ -4,6 +4,11 @@ export type SyncState = {
 			historyId: string;
 		};
 	};
+	gmail?: {
+		[userEmail: string]: {
+			historyId: string;
+		};
+	};
 	microsoft?: {
 		[userEmail: string]: {
 			deltaTokens: { [folderId: string]: string };
@@ -20,6 +25,7 @@ export type SyncState = {
 
 export type IngestionProvider =
 	| 'google_workspace'
+	| 'gmail'
 	| 'microsoft_365'
 	| 'generic_imap'
 	| 'pst_import'
@@ -63,6 +69,18 @@ export interface GoogleWorkspaceCredentials extends BaseIngestionCredentials {
 	impersonatedAdminEmail: string;
 }
 
+export interface GmailCredentials extends BaseIngestionCredentials {
+	type: 'gmail';
+	/**
+	 * The OAuth 2.0 refresh token obtained from user consent flow.
+	 */
+	refreshToken: string;
+	/**
+	 * The email address of the authenticated Gmail user.
+	 */
+	userEmail: string;
+}
+
 export interface Microsoft365Credentials extends BaseIngestionCredentials {
 	type: 'microsoft_365';
 	clientId: string;
@@ -92,6 +110,7 @@ export interface MboxImportCredentials extends BaseIngestionCredentials {
 export type IngestionCredentials =
 	| GenericImapCredentials
 	| GoogleWorkspaceCredentials
+	| GmailCredentials
 	| Microsoft365Credentials
 	| PSTImportCredentials
 	| EMLImportCredentials

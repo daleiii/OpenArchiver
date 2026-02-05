@@ -26,6 +26,10 @@
 			label: $t('app.components.ingestion_source_form.provider_generic_imap'),
 		},
 		{
+			value: 'gmail',
+			label: $t('app.components.ingestion_source_form.provider_gmail'),
+		},
+		{
 			value: 'google_workspace',
 			label: $t('app.components.ingestion_source_form.provider_google_workspace'),
 		},
@@ -138,7 +142,16 @@
 		</Select.Root>
 	</div>
 
-	{#if formData.provider === 'google_workspace'}
+	{#if formData.provider === 'gmail'}
+		<Alert.Root>
+			<Alert.Title>{$t('app.components.ingestion_source_form.gmail_oauth_title')}</Alert.Title>
+			<Alert.Description>
+				<div class="my-1">
+					{$t('app.components.ingestion_source_form.gmail_oauth_description')}
+				</div>
+			</Alert.Description>
+		</Alert.Root>
+	{:else if formData.provider === 'google_workspace'}
 		<div class="grid grid-cols-4 items-center gap-4">
 			<Label for="serviceAccountKeyJson" class="text-left"
 				>{$t('app.components.ingestion_source_form.service_account_key')}</Label
