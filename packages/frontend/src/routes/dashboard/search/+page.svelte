@@ -384,11 +384,21 @@
 						</div>
 						<div class="space-y-2">
 							<Label for="date-from">{$t('app.search.filter_date_from')}</Label>
-							<Input id="date-from" type="date" bind:value={dateFrom} />
+							<Input
+								id="date-from"
+								type="date"
+								class="date-input-right"
+								bind:value={dateFrom}
+							/>
 						</div>
 						<div class="space-y-2">
 							<Label for="date-to">{$t('app.search.filter_date_to')}</Label>
-							<Input id="date-to" type="date" bind:value={dateTo} />
+							<Input
+								id="date-to"
+								type="date"
+								class="date-input-right"
+								bind:value={dateTo}
+							/>
 						</div>
 						<div class="space-y-2">
 							<Label for="attachments">{$t('app.search.filter_attachments')}</Label>

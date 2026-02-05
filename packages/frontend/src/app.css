@@ -123,3 +123,19 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+/* Date input with calendar icon on the right */
+.date-input-right {
+	position: relative;
+}
+
+.date-input-right::-webkit-calendar-picker-indicator {
+	position: absolute;
+	right: 0.75rem;
+	cursor: pointer;
+}
+
+/* Make calendar icon visible in dark mode */
+.dark .date-input-right::-webkit-calendar-picker-indicator {
+	filter: invert(1);
+}
