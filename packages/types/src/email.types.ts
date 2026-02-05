@@ -89,4 +89,5 @@ export interface EmailDocument {
 	ingestionSourceId: string;
 	threadId?: string; // Thread/conversation ID for grouping related emails
 	tags: string[]; // Labels, flags, or tags from the email provider
+	hasAttachments: boolean; // Whether the email has attachments
 }

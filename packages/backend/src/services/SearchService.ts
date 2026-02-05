@@ -199,6 +199,7 @@ export class SearchService {
 				'userEmail',
 				'threadId',
 				'tags',
+				'hasAttachments',
 			],
 			sortableAttributes: ['timestamp'],
 		});

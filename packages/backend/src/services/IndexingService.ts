@@ -375,6 +375,7 @@ export class IndexingService {
 			ingestionSourceId: ingestionSourceId,
 			threadId: email.threadId,
 			tags: email.tags || [],
+			hasAttachments: extractedAttachments.length > 0,
 		};
 	}
 
@@ -414,6 +415,7 @@ export class IndexingService {
 			ingestionSourceId: email.ingestionSourceId,
 			threadId: email.threadId || undefined,
 			tags: tags,
+			hasAttachments: email.hasAttachments,
 		};
 	}
 
@@ -510,6 +512,7 @@ export class IndexingService {
 			ingestionSourceId: doc.ingestionSourceId || 'unknown',
 			threadId: doc.threadId,
 			tags: Array.isArray(doc.tags) ? doc.tags : [],
+			hasAttachments: doc.hasAttachments ?? false,
 		};
 	}
 
