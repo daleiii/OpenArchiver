@@ -42,7 +42,8 @@ Password: openarchiver_demo
 
 - **Universal Ingestion**: Connect to any email provider to perform initial bulk imports and maintain continuous, real-time synchronization. Ingestion sources include:
     - IMAP connection
-    - Google Workspace
+    - Google Workspace (organization-wide)
+    - Gmail (personal accounts)
     - Microsoft 365
     - PST files
     - Zipped .eml files
@@ -109,7 +110,8 @@ Open Archiver is built on a modern, scalable, and maintainable technology stack:
 After deploying the application, you will need to configure one or more ingestion sources to begin archiving emails. Follow our detailed guides to connect to your email provider:
 
 - [Connecting to Google Workspace](https://docs.openarchiver.com/user-guides/email-providers/google-workspace.html)
-- [Connecting to Microsoft 365](https://docs.openarchiver.com/user-guides/email-providers/imap.html)
+- [Connecting to Gmail (Personal)](https://docs.openarchiver.com/user-guides/email-providers/gmail.html)
+- [Connecting to Microsoft 365](https://docs.openarchiver.com/user-guides/email-providers/microsoft-365.html)
 - [Connecting to a Generic IMAP Server](https://docs.openarchiver.com/user-guides/email-providers/imap.html)
 
 ## 🤝 Contributing

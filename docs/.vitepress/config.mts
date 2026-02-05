@@ -48,6 +48,10 @@ export default defineConfig({
 								link: '/user-guides/email-providers/google-workspace',
 							},
 							{
+								text: 'Gmail (Personal)',
+								link: '/user-guides/email-providers/gmail',
+							},
+							{
 								text: 'Microsoft 365',
 								link: '/user-guides/email-providers/microsoft-365',
 							},
