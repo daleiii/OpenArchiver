@@ -99,20 +99,20 @@
 		<div class="col-span-3 space-y-6 md:col-span-1">
 			<!-- Subject -->
 			<Card.Root>
-				<Card.Header class="pb-2">
+				<Card.Header class="pb-0">
 					<Card.Title class="text-lg">{$t('app.archive.subject')}</Card.Title>
 				</Card.Header>
-				<Card.Content>
+				<Card.Content class="pt-2">
 					<p class="text-foreground">{email.subject || $t('app.archive.no_subject')}</p>
 				</Card.Content>
 			</Card.Root>
 
 			<!-- Participants -->
 			<Card.Root>
-				<Card.Header class="pb-2">
+				<Card.Header class="pb-0">
 					<Card.Title class="text-lg">{$t('app.archive.participants')}</Card.Title>
 				</Card.Header>
-				<Card.Content>
+				<Card.Content class="pt-2">
 					<dl class="text-muted-foreground space-y-2 text-sm">
 						<div class="flex gap-2">
 							<dt class="text-foreground w-12 flex-shrink-0 font-medium">{$t('app.archive.from')}:</dt>
@@ -139,10 +139,10 @@
 			<!-- Email Thread -->
 			{#if email.thread && email.thread.length > 1}
 				<Card.Root>
-					<Card.Header class="pb-2">
+					<Card.Header class="pb-0">
 						<Card.Title class="text-lg">{$t('app.archive.email_thread')}</Card.Title>
 					</Card.Header>
-					<Card.Content>
+					<Card.Content class="pt-2">
 						<EmailThread thread={email.thread} currentEmailId={email.id} />
 					</Card.Content>
 				</Card.Root>
@@ -150,10 +150,10 @@
 
 			<!-- Details -->
 			<Card.Root>
-				<Card.Header class="pb-2">
+				<Card.Header class="pb-0">
 					<Card.Title class="text-lg">{$t('app.archive.details')}</Card.Title>
 				</Card.Header>
-				<Card.Content>
+				<Card.Content class="pt-2">
 					<dl class="text-muted-foreground space-y-2 text-sm">
 						<div class="flex gap-2">
 							<dt class="text-foreground w-16 flex-shrink-0 font-medium">{$t('app.archive.sent')}:</dt>
@@ -208,10 +208,10 @@
 			<!-- Attachments -->
 			{#if email.attachments && email.attachments.length > 0}
 				<Card.Root>
-					<Card.Header class="pb-2">
+					<Card.Header class="pb-0">
 						<Card.Title class="text-lg">{$t('app.archive.attachments')}</Card.Title>
 					</Card.Header>
-					<Card.Content>
+					<Card.Content class="pt-2">
 						<ul class="space-y-2">
 							{#each email.attachments as attachment}
 								<li class="flex items-center justify-between gap-2">
@@ -235,10 +235,10 @@
 
 			<!-- Actions -->
 			<Card.Root>
-				<Card.Header class="pb-2">
+				<Card.Header class="pb-0">
 					<Card.Title class="text-lg">{$t('app.archive.actions')}</Card.Title>
 				</Card.Header>
-				<Card.Content class="space-y-2">
+				<Card.Content class="pt-2 space-y-2">
 					<Button
 						class="w-full"
 						onclick={() => download(email.storagePath, `${email.subject || 'email'}.eml`)}
@@ -254,7 +254,7 @@
 			<!-- Integrity Report -->
 			{#if integrityReport && integrityReport.length > 0}
 				<Card.Root>
-					<Card.Header class="pb-2">
+					<Card.Header class="pb-0">
 						<Card.Title class="text-lg">{$t('app.archive.integrity_report')}</Card.Title>
 						<Card.Description>
 							<span class="mt-1">
@@ -269,7 +269,7 @@
 							</span>
 						</Card.Description>
 					</Card.Header>
-					<Card.Content class="space-y-2">
+					<Card.Content class="pt-2 space-y-2">
 						<ul class="space-y-2">
 							{#each integrityReport as item}
 								<li class="flex items-center justify-between">
