@@ -25,6 +25,7 @@ export const actions: Actions = {
 		const supportEmail = formData.get('supportEmail');
 		const searchMaxTotalHitsRaw = formData.get('searchMaxTotalHits');
 		const searchMaxTotalHitsUnlimited = formData.get('searchMaxTotalHitsUnlimited');
+		const defaultExcludedTagsRaw = formData.get('defaultExcludedTags');
 
 		// Parse searchMaxTotalHits: if unlimited checkbox is checked, set to null
 		let searchMaxTotalHits: number | null = null;
@@ -33,11 +34,20 @@ export const actions: Actions = {
 			searchMaxTotalHits = isNaN(parsed) || parsed <= 0 ? null : parsed;
 		}
 
+		// Parse defaultExcludedTags: comma-separated string to array
+		const defaultExcludedTags = defaultExcludedTagsRaw
+			? String(defaultExcludedTagsRaw)
+					.split(',')
+					.map((t) => t.trim())
+					.filter(Boolean)
+			: [];
+
 		const body: Partial<SystemSettings> = {
 			language: language as SystemSettings['language'],
 			theme: theme as SystemSettings['theme'],
 			supportEmail: supportEmail ? String(supportEmail) : null,
 			searchMaxTotalHits,
+			defaultExcludedTags,
 		};
 
 		const response = await api('/settings/system', event, {

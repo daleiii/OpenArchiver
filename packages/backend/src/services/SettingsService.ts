@@ -10,6 +10,7 @@ const DEFAULT_SETTINGS: SystemSettings = {
 	supportEmail: null,
 	searchMaxTotalHits:
 		meiliConfig.defaultMaxTotalHits <= 0 ? null : meiliConfig.defaultMaxTotalHits,
+	defaultExcludedTags: [],
 };
 
 export class SettingsService {

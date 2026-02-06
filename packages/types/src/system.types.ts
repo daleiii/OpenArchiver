@@ -28,4 +28,10 @@ export interface SystemSettings {
 	 * Default is 1000 if not configured.
 	 */
 	searchMaxTotalHits: number | null;
+
+	/**
+	 * Tags to exclude from search results by default.
+	 * Users can override this by modifying the exclude tags filter.
+	 */
+	defaultExcludedTags: string[];
 }

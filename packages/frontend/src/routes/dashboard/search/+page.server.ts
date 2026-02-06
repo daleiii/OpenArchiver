@@ -1,6 +1,6 @@
 import type { PageServerLoad, RequestEvent } from './$types';
 import { api } from '$lib/server/api';
-import type { SearchResult } from '@open-archiver/types';
+import type { SearchResult, SystemSettings } from '@open-archiver/types';
 import type { MatchingStrategy, SearchSort } from '@open-archiver/types';
 
 interface SearchFilters {
@@ -116,6 +116,29 @@ export const load: PageServerLoad = async (event) => {
 		'last') as MatchingStrategy;
 	const sort = (event.url.searchParams.get('sort') || 'date_desc') as SearchSort;
 
+	// Fetch system settings for default excluded tags
+	let defaultExcludedTags: string[] = [];
+	try {
+		const settingsResponse = await api('/settings/system', event, { method: 'GET' });
+		if (settingsResponse.ok) {
+			const settings: SystemSettings = await settingsResponse.json();
+			defaultExcludedTags = settings.defaultExcludedTags ?? [];
+		}
+	} catch {
+		// Silently fail - defaults will just be empty
+	}
+
+	// Check if excludeTags was explicitly set in URL (even if empty)
+	const excludeTagsExplicitlySet = event.url.searchParams.has('excludeTags');
+
+	// Apply default excluded tags if not explicitly set in URL
+	let excludeTagsValue: string | undefined;
+	if (excludeTagsExplicitlySet) {
+		excludeTagsValue = event.url.searchParams.get('excludeTags') || undefined;
+	} else if (defaultExcludedTags.length > 0) {
+		excludeTagsValue = defaultExcludedTags.join(',');
+	}
+
 	const filters: SearchFilters = {
 		from: event.url.searchParams.get('from') || undefined,
 		to: event.url.searchParams.get('to') || undefined,
@@ -127,7 +150,7 @@ export const load: PageServerLoad = async (event) => {
 		tags: event.url.searchParams.get('tags') || undefined,
 		hasAttachments: event.url.searchParams.get('hasAttachments') || undefined,
 		includeTags: event.url.searchParams.get('includeTags') || undefined,
-		excludeTags: event.url.searchParams.get('excludeTags') || undefined,
+		excludeTags: excludeTagsValue,
 	};
 
 	// Fetch available tags for the filter dropdowns
@@ -150,5 +173,5 @@ export const load: PageServerLoad = async (event) => {
 		filters,
 		event
 	);
-	return { ...searchData, availableTags };
+	return { ...searchData, availableTags, defaultExcludedTags };
 };

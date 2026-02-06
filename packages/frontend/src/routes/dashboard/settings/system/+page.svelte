@@ -16,6 +16,7 @@
 	let isSaving = $state(false);
 	let searchMaxTotalHitsUnlimited = $state(settings.searchMaxTotalHits === null);
 	let searchMaxTotalHitsValue = $state(settings.searchMaxTotalHits ?? 1000);
+	let defaultExcludedTagsValue = $state((settings.defaultExcludedTags ?? []).join(', '));
 
 	const languageOptions: { value: SupportedLanguage; label: string }[] = [
 		{ value: 'en', label: '🇬🇧 English' },
@@ -40,6 +41,7 @@
 			settings = form.settings;
 			searchMaxTotalHitsUnlimited = settings.searchMaxTotalHits === null;
 			searchMaxTotalHitsValue = settings.searchMaxTotalHits ?? 1000;
+			defaultExcludedTagsValue = (settings.defaultExcludedTags ?? []).join(', ');
 			setAlert({
 				type: 'success',
 				title: 'Settings Updated',
@@ -159,6 +161,23 @@
 							</Label.Root>
 						</div>
 					</div>
+				</div>
+
+				<div class="grid gap-2">
+					<Label.Root class="mb-1" for="defaultExcludedTags"
+						>{$t('app.system_settings.default_excluded_tags')}</Label.Root
+					>
+					<p class="text-muted-foreground text-sm">
+						{$t('app.system_settings.default_excluded_tags_description')}
+					</p>
+					<Input
+						id="defaultExcludedTags"
+						name="defaultExcludedTags"
+						type="text"
+						placeholder="SPAM, TRASH, JUNK"
+						bind:value={defaultExcludedTagsValue}
+						class="max-w-sm"
+					/>
 				</div>
 			</Card.Content>
 			<Card.Footer class="border-t px-6 py-4">

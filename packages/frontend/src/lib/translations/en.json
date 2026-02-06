@@ -191,6 +191,8 @@
 			"search_max_results": "Search Max Results",
 			"search_max_results_description": "Maximum number of search results that can be paginated through. Higher values use more memory.",
 			"search_max_results_unlimited": "Unlimited",
+			"default_excluded_tags": "Default Excluded Tags",
+			"default_excluded_tags_description": "Tags to exclude from search results by default. Enter comma-separated values (e.g., SPAM, TRASH).",
 			"saving": "Saving",
 			"save_changes": "Save Changes"
 		},
