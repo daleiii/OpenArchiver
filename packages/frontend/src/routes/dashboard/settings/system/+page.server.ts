@@ -3,6 +3,11 @@ import type { SystemSettings } from '@open-archiver/types';
 import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
+interface TagFacet {
+	tag: string;
+	count: number;
+}
+
 export const load: PageServerLoad = async (event) => {
 	const response = await api('/settings/system', event);
 
@@ -12,8 +17,21 @@ export const load: PageServerLoad = async (event) => {
 	}
 
 	const systemSettings: SystemSettings = await response.json();
+
+	// Fetch available tags for the default excluded tags dropdown
+	let availableTags: TagFacet[] = [];
+	try {
+		const tagsResponse = await api('/search/facets/tags', event, { method: 'GET' });
+		if (tagsResponse.ok) {
+			availableTags = await tagsResponse.json();
+		}
+	} catch {
+		// Silently fail - tags will just be empty
+	}
+
 	return {
 		systemSettings,
+		availableTags,
 	};
 };
 

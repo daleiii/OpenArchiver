@@ -6,17 +6,30 @@
 	import * as Label from '$lib/components/ui/label';
 	import * as RadioGroup from '$lib/components/ui/radio-group';
 	import * as Select from '$lib/components/ui/select';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { setAlert } from '$lib/components/custom/alert/alert-state.svelte';
 	import type { SupportedLanguage } from '@open-archiver/types';
 	import { t } from '$lib/translations';
+	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 
 	let { data, form }: { data: PageData; form: any } = $props();
 	let settings = $state(data.systemSettings);
 	let isSaving = $state(false);
 	let searchMaxTotalHitsUnlimited = $state(settings.searchMaxTotalHits === null);
 	let searchMaxTotalHitsValue = $state(settings.searchMaxTotalHits ?? 1000);
-	let defaultExcludedTagsValue = $state((settings.defaultExcludedTags ?? []).join(', '));
+	let defaultExcludedTags = $state<string[]>(settings.defaultExcludedTags ?? []);
+
+	// Available tags from the facets endpoint
+	let availableTags = $derived(data.availableTags || []);
+
+	function toggleExcludedTag(tag: string) {
+		if (defaultExcludedTags.includes(tag)) {
+			defaultExcludedTags = defaultExcludedTags.filter((t) => t !== tag);
+		} else {
+			defaultExcludedTags = [...defaultExcludedTags, tag];
+		}
+	}
 
 	const languageOptions: { value: SupportedLanguage; label: string }[] = [
 		{ value: 'en', label: '🇬🇧 English' },
@@ -41,7 +54,7 @@
 			settings = form.settings;
 			searchMaxTotalHitsUnlimited = settings.searchMaxTotalHits === null;
 			searchMaxTotalHitsValue = settings.searchMaxTotalHits ?? 1000;
-			defaultExcludedTagsValue = (settings.defaultExcludedTags ?? []).join(', ');
+			defaultExcludedTags = settings.defaultExcludedTags ?? [];
 			setAlert({
 				type: 'success',
 				title: 'Settings Updated',
@@ -170,14 +183,49 @@
 					<p class="text-muted-foreground text-sm">
 						{$t('app.system_settings.default_excluded_tags_description')}
 					</p>
-					<Input
-						id="defaultExcludedTags"
+					<input
+						type="hidden"
 						name="defaultExcludedTags"
-						type="text"
-						placeholder="SPAM, TRASH, JUNK"
-						bind:value={defaultExcludedTagsValue}
-						class="max-w-sm"
+						value={defaultExcludedTags.join(',')}
 					/>
+					{#if availableTags.length > 0}
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger>
+								<Button variant="outline" class="max-w-sm justify-between">
+									<span class="truncate">
+										{#if defaultExcludedTags.length === 0}
+											{$t(
+												'app.system_settings.default_excluded_tags_placeholder'
+											)}
+										{:else}
+											{defaultExcludedTags.length} tag{defaultExcludedTags.length >
+											1
+												? 's'
+												: ''} selected
+										{/if}
+									</span>
+									<ChevronDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+								</Button>
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Content class="max-h-64 w-56 overflow-y-auto">
+								{#each availableTags as tagItem (tagItem.tag)}
+									<DropdownMenu.CheckboxItem
+										checked={defaultExcludedTags.includes(tagItem.tag)}
+										onCheckedChange={() => toggleExcludedTag(tagItem.tag)}
+									>
+										<span class="flex-1 truncate">{tagItem.tag}</span>
+										<span class="text-muted-foreground ml-2 text-xs">
+											({tagItem.count})
+										</span>
+									</DropdownMenu.CheckboxItem>
+								{/each}
+							</DropdownMenu.Content>
+						</DropdownMenu.Root>
+					{:else}
+						<p class="text-muted-foreground text-sm italic">
+							{$t('app.system_settings.no_tags_available')}
+						</p>
+					{/if}
 				</div>
 			</Card.Content>
 			<Card.Footer class="border-t px-6 py-4">

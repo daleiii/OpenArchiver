@@ -192,7 +192,9 @@
 			"search_max_results_description": "Maximum number of search results that can be paginated through. Higher values use more memory.",
 			"search_max_results_unlimited": "Unlimited",
 			"default_excluded_tags": "Default Excluded Tags",
-			"default_excluded_tags_description": "Tags to exclude from search results by default. Enter comma-separated values (e.g., SPAM, TRASH).",
+			"default_excluded_tags_description": "Tags to exclude from search results by default (e.g., SPAM, TRASH).",
+			"default_excluded_tags_placeholder": "Select tags to exclude",
+			"no_tags_available": "No tags available. Tags will appear once emails are archived.",
 			"saving": "Saving",
 			"save_changes": "Save Changes"
 		},
