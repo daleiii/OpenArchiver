@@ -51,6 +51,7 @@
 
 	$effect(() => {
 		if (form?.success) {
+			isSaving = false;
 			settings = form.settings;
 			searchMaxTotalHitsUnlimited = settings.searchMaxTotalHits === null;
 			searchMaxTotalHitsValue = settings.searchMaxTotalHits ?? 1000;
@@ -63,6 +64,7 @@
 				show: true,
 			});
 		} else if (form?.message) {
+			isSaving = false;
 			setAlert({
 				type: 'error',
 				title: 'Update Failed',
