@@ -31,6 +31,8 @@ This fork includes the following enhancements over the upstream [LogicLabs-OU/Op
 - **Auto-Search**: Debounced search as you type - no need to click the search button
 - **Filter Without Keywords**: Use filters alone without entering search terms
 - **Thread Navigation**: Click to view all emails in a conversation thread
+- **Configurable Result Limits**: Set maximum searchable results via UI or `MEILI_MAX_TOTAL_HITS` env var
+- **Default Excluded Tags**: Configure tags to exclude by default (e.g., SPAM) in System Settings
 
 ### UI/UX Improvements
 
