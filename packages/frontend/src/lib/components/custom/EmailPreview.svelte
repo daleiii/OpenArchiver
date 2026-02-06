@@ -60,7 +60,7 @@
 		<iframe
 			title={$t('app.archive.email_preview')}
 			srcdoc={emailHtml()}
-			class="h-[600px] w-full border-none"
+			class="h-[400px] w-full border-none md:h-[600px]"
 		></iframe>
 	{:else if raw}
 		<p>{$t('app.components.email_preview.render_error')}</p>
