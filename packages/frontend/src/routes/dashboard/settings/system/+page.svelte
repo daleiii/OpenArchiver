@@ -14,11 +14,15 @@
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 
 	let { data, form }: { data: PageData; form: any } = $props();
-	let settings = $state(data.systemSettings);
 	let isSaving = $state(false);
-	let searchMaxTotalHitsUnlimited = $state(settings.searchMaxTotalHits === null);
-	let searchMaxTotalHitsValue = $state(settings.searchMaxTotalHits ?? 1000);
-	let defaultExcludedTags = $state<string[]>(settings.defaultExcludedTags ?? []);
+
+	// Form field state - initialized from data and synced when data changes
+	let language = $state(data.systemSettings.language);
+	let theme = $state(data.systemSettings.theme);
+	let supportEmail = $state(data.systemSettings.supportEmail);
+	let searchMaxTotalHitsUnlimited = $state(data.systemSettings.searchMaxTotalHits === null);
+	let searchMaxTotalHitsValue = $state(data.systemSettings.searchMaxTotalHits ?? 1000);
+	let defaultExcludedTags = $state<string[]>(data.systemSettings.defaultExcludedTags ?? []);
 
 	// Available tags from the facets endpoint
 	let availableTags = $derived(data.availableTags || []);
@@ -45,17 +49,24 @@
 	];
 
 	const languageTriggerContent = $derived(
-		languageOptions.find((lang) => lang.value === settings.language)?.label ??
-			'Select a language'
+		languageOptions.find((lang) => lang.value === language)?.label ?? 'Select a language'
 	);
 
+	// Sync form state when data changes (after successful save, load function re-runs)
+	$effect(() => {
+		const s = data.systemSettings;
+		language = s.language;
+		theme = s.theme;
+		supportEmail = s.supportEmail;
+		searchMaxTotalHitsUnlimited = s.searchMaxTotalHits === null;
+		searchMaxTotalHitsValue = s.searchMaxTotalHits ?? 1000;
+		defaultExcludedTags = s.defaultExcludedTags ?? [];
+	});
+
+	// Handle form response - just show alerts
 	$effect(() => {
 		if (form?.success) {
 			isSaving = false;
-			settings = form.settings;
-			searchMaxTotalHitsUnlimited = settings.searchMaxTotalHits === null;
-			searchMaxTotalHitsValue = settings.searchMaxTotalHits ?? 1000;
-			defaultExcludedTags = settings.defaultExcludedTags ?? [];
 			setAlert({
 				type: 'success',
 				title: 'Settings Updated',
@@ -94,7 +105,7 @@
 					<Label.Root class="mb-1" for="language"
 						>{$t('app.system_settings.language')}</Label.Root
 					>
-					<Select.Root name="language" bind:value={settings.language} type="single">
+					<Select.Root name="language" bind:value={language} type="single">
 						<Select.Trigger class="w-[280px]">
 							{languageTriggerContent}
 						</Select.Trigger>
@@ -109,7 +120,7 @@
 				<div class="grid gap-2">
 					<Label.Root class="mb-1">{$t('app.system_settings.default_theme')}</Label.Root>
 					<RadioGroup.Root
-						bind:value={settings.theme}
+						bind:value={theme}
 						name="theme"
 						class="flex items-center gap-4"
 					>
@@ -137,7 +148,7 @@
 						name="supportEmail"
 						type="email"
 						placeholder="support@example.com"
-						bind:value={settings.supportEmail}
+						bind:value={supportEmail}
 						class="max-w-sm"
 					/>
 				</div>
@@ -193,7 +204,10 @@
 					{#if availableTags.length > 0}
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger>
-								<Button variant="outline" class="w-full max-w-sm justify-between text-left">
+								<Button
+									variant="outline"
+									class="w-full max-w-sm justify-between text-left"
+								>
 									<span class="truncate">
 										{#if defaultExcludedTags.length === 0}
 											{$t(
