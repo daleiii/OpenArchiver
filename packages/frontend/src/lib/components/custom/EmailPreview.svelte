@@ -7,8 +7,12 @@
 	let {
 		raw,
 		rawHtml,
-	}: { raw?: Buffer | { type: 'Buffer'; data: number[] } | undefined; rawHtml?: string } =
-		$props();
+		class: className = '',
+	}: {
+		raw?: Buffer | { type: 'Buffer'; data: number[] } | undefined;
+		rawHtml?: string;
+		class?: string;
+	} = $props();
 
 	let parsedEmail: Email | null = $state(null);
 	let isLoading = $state(true);
@@ -53,14 +57,14 @@
 	});
 </script>
 
-<div class="mt-2 rounded-md border bg-white p-4">
+<div class="mt-2 flex flex-col rounded-md border bg-white p-4 {className}">
 	{#if isLoading}
 		<p>{$t('app.components.email_preview.loading')}</p>
 	{:else if emailHtml()}
 		<iframe
 			title={$t('app.archive.email_preview')}
 			srcdoc={emailHtml()}
-			class="h-[400px] w-full border-none md:h-[600px]"
+			class="min-h-[400px] w-full flex-1 border-none"
 		></iframe>
 	{:else if raw}
 		<p>{$t('app.components.email_preview.render_error')}</p>

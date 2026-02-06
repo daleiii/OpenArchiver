@@ -84,13 +84,13 @@
 {#if email}
 	<div class="grid grid-cols-3 gap-6">
 		<!-- Left column: Email preview only -->
-		<div class="col-span-3 md:col-span-2">
-			<Card.Root>
+		<div class="col-span-3 flex md:col-span-2">
+			<Card.Root class="flex flex-1 flex-col">
 				<Card.Header>
 					<Card.Title>{$t('app.archive.email_preview')}</Card.Title>
 				</Card.Header>
-				<Card.Content>
-					<EmailPreview raw={email.raw} />
+				<Card.Content class="flex flex-1 flex-col">
+					<EmailPreview raw={email.raw} class="flex-1" />
 				</Card.Content>
 			</Card.Root>
 		</div>
