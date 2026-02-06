@@ -188,6 +188,9 @@
 			"dark": "Dark",
 			"system": "System",
 			"support_email": "Support Email",
+			"search_max_results": "Search Max Results",
+			"search_max_results_description": "Maximum number of search results that can be paginated through. Higher values use more memory.",
+			"search_max_results_unlimited": "Unlimited",
 			"saving": "Saving",
 			"save_changes": "Save Changes"
 		},

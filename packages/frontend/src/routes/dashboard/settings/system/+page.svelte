@@ -6,6 +6,7 @@
 	import * as Label from '$lib/components/ui/label';
 	import * as RadioGroup from '$lib/components/ui/radio-group';
 	import * as Select from '$lib/components/ui/select';
+	import { Checkbox } from '$lib/components/ui/checkbox';
 	import { setAlert } from '$lib/components/custom/alert/alert-state.svelte';
 	import type { SupportedLanguage } from '@open-archiver/types';
 	import { t } from '$lib/translations';
@@ -13,6 +14,8 @@
 	let { data, form }: { data: PageData; form: any } = $props();
 	let settings = $state(data.systemSettings);
 	let isSaving = $state(false);
+	let searchMaxTotalHitsUnlimited = $state(settings.searchMaxTotalHits === null);
+	let searchMaxTotalHitsValue = $state(settings.searchMaxTotalHits ?? 1000);
 
 	const languageOptions: { value: SupportedLanguage; label: string }[] = [
 		{ value: 'en', label: '🇬🇧 English' },
@@ -35,6 +38,8 @@
 	$effect(() => {
 		if (form?.success) {
 			settings = form.settings;
+			searchMaxTotalHitsUnlimited = settings.searchMaxTotalHits === null;
+			searchMaxTotalHitsValue = settings.searchMaxTotalHits ?? 1000;
 			setAlert({
 				type: 'success',
 				title: 'Settings Updated',
@@ -118,6 +123,42 @@
 						bind:value={settings.supportEmail}
 						class="max-w-sm"
 					/>
+				</div>
+
+				<div class="grid gap-2">
+					<Label.Root class="mb-1" for="searchMaxTotalHits"
+						>{$t('app.system_settings.search_max_results')}</Label.Root
+					>
+					<p class="text-muted-foreground text-sm">
+						{$t('app.system_settings.search_max_results_description')}
+					</p>
+					<div class="flex items-center gap-4">
+						<Input
+							id="searchMaxTotalHits"
+							name="searchMaxTotalHits"
+							type="number"
+							min="100"
+							max="10000000"
+							placeholder="1000"
+							bind:value={searchMaxTotalHitsValue}
+							disabled={searchMaxTotalHitsUnlimited}
+							class="max-w-[150px]"
+						/>
+						<div class="flex items-center gap-2">
+							<Checkbox
+								id="searchMaxTotalHitsUnlimited"
+								bind:checked={searchMaxTotalHitsUnlimited}
+							/>
+							<input
+								type="hidden"
+								name="searchMaxTotalHitsUnlimited"
+								value={searchMaxTotalHitsUnlimited ? 'true' : 'false'}
+							/>
+							<Label.Root for="searchMaxTotalHitsUnlimited" class="cursor-pointer">
+								{$t('app.system_settings.search_max_results_unlimited')}
+							</Label.Root>
+						</div>
+					</div>
 				</div>
 			</Card.Content>
 			<Card.Footer class="border-t px-6 py-4">

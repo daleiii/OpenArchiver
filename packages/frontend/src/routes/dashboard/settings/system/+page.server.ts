@@ -23,11 +23,21 @@ export const actions: Actions = {
 		const language = formData.get('language');
 		const theme = formData.get('theme');
 		const supportEmail = formData.get('supportEmail');
+		const searchMaxTotalHitsRaw = formData.get('searchMaxTotalHits');
+		const searchMaxTotalHitsUnlimited = formData.get('searchMaxTotalHitsUnlimited');
+
+		// Parse searchMaxTotalHits: if unlimited checkbox is checked, set to null
+		let searchMaxTotalHits: number | null = null;
+		if (searchMaxTotalHitsUnlimited !== 'true') {
+			const parsed = parseInt(String(searchMaxTotalHitsRaw), 10);
+			searchMaxTotalHits = isNaN(parsed) || parsed <= 0 ? null : parsed;
+		}
 
 		const body: Partial<SystemSettings> = {
 			language: language as SystemSettings['language'],
 			theme: theme as SystemSettings['theme'],
 			supportEmail: supportEmail ? String(supportEmail) : null,
+			searchMaxTotalHits,
 		};
 
 		const response = await api('/settings/system', event, {

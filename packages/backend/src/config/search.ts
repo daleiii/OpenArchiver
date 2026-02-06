@@ -9,4 +9,12 @@ export const meiliConfig = {
 	indexingBatchSize: process.env.MEILI_INDEXING_BATCH
 		? parseInt(process.env.MEILI_INDEXING_BATCH)
 		: 500,
+	/**
+	 * Default max total hits for search pagination.
+	 * Set to 0 or negative for unlimited (uses Meilisearch maximum).
+	 * Can be overridden via System Settings UI.
+	 */
+	defaultMaxTotalHits: process.env.MEILI_MAX_TOTAL_HITS
+		? parseInt(process.env.MEILI_MAX_TOTAL_HITS)
+		: 1000,
 };

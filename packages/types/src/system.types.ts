@@ -21,4 +21,11 @@ export interface SystemSettings {
 
 	/** A public-facing email address for user support inquiries. */
 	supportEmail: string | null;
+
+	/**
+	 * Maximum number of search results that can be paginated through.
+	 * Set to null for unlimited (Meilisearch maximum).
+	 * Default is 1000 if not configured.
+	 */
+	searchMaxTotalHits: number | null;
 }

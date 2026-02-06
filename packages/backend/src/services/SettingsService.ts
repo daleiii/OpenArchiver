@@ -2,11 +2,14 @@ import { db } from '../database';
 import { systemSettings } from '../database/schema/system-settings';
 import type { SystemSettings, User } from '@open-archiver/types';
 import { AuditService } from './AuditService';
+import { meiliConfig } from '../config/search';
 
 const DEFAULT_SETTINGS: SystemSettings = {
 	language: 'en',
 	theme: 'system',
 	supportEmail: null,
+	searchMaxTotalHits:
+		meiliConfig.defaultMaxTotalHits <= 0 ? null : meiliConfig.defaultMaxTotalHits,
 };
 
 export class SettingsService {

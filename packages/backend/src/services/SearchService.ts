@@ -6,9 +6,11 @@ import type {
 	EmailDocument,
 	TopSender,
 	User,
+	SystemSettings,
 } from '@open-archiver/types';
 import { FilterBuilder } from './FilterBuilder';
 import { AuditService } from './AuditService';
+import { SettingsService } from './SettingsService';
 
 export class SearchService {
 	private client: MeiliSearch;
@@ -235,9 +237,15 @@ export class SearchService {
 			.map(([tag, count]) => ({ tag, count }));
 	}
 
-	public async configureEmailIndex() {
+	public async configureEmailIndex(settings?: SystemSettings) {
 		// Enable experimental containsFilter for partial matching in filters
 		await this.client.updateExperimentalFeatures({ containsFilter: true });
+
+		// Fetch settings if not provided
+		if (!settings) {
+			const settingsService = new SettingsService();
+			settings = await settingsService.getSystemSettings();
+		}
 
 		const index = await this.getIndex('emails');
 		await index.updateSettings({
@@ -274,6 +282,10 @@ export class SearchService {
 				'hasAttachments',
 			],
 			sortableAttributes: ['timestamp'],
+			pagination: {
+				// null means unlimited - use a very high number (Meilisearch doesn't have true unlimited)
+				maxTotalHits: settings.searchMaxTotalHits ?? 1000000,
+			},
 		});
 	}
 }
