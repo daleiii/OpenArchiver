@@ -39,7 +39,7 @@ async function performSearch(
 			limit,
 			matchingStrategy: 'last',
 			sort: 'date_desc',
-			filters: {},
+			filters,
 		};
 	}
 
