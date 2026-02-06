@@ -98,7 +98,7 @@
 		<!-- Right column: All metadata and actions -->
 		<div class="col-span-3 space-y-6 md:col-span-1">
 			<!-- Subject -->
-			<Card.Root>
+			<Card.Root class="gap-2">
 				<Card.Header class="pb-0">
 					<Card.Title class="text-lg">{$t('app.archive.subject')}</Card.Title>
 				</Card.Header>
@@ -108,7 +108,7 @@
 			</Card.Root>
 
 			<!-- Participants -->
-			<Card.Root>
+			<Card.Root class="gap-2">
 				<Card.Header class="pb-0">
 					<Card.Title class="text-lg">{$t('app.archive.participants')}</Card.Title>
 				</Card.Header>
@@ -138,7 +138,7 @@
 
 			<!-- Email Thread -->
 			{#if email.thread && email.thread.length > 1}
-				<Card.Root>
+				<Card.Root class="gap-2">
 					<Card.Header class="pb-0">
 						<Card.Title class="text-lg">{$t('app.archive.email_thread')}</Card.Title>
 					</Card.Header>
@@ -149,7 +149,7 @@
 			{/if}
 
 			<!-- Details -->
-			<Card.Root>
+			<Card.Root class="gap-2">
 				<Card.Header class="pb-0">
 					<Card.Title class="text-lg">{$t('app.archive.details')}</Card.Title>
 				</Card.Header>
@@ -207,7 +207,7 @@
 
 			<!-- Attachments -->
 			{#if email.attachments && email.attachments.length > 0}
-				<Card.Root>
+				<Card.Root class="gap-2">
 					<Card.Header class="pb-0">
 						<Card.Title class="text-lg">{$t('app.archive.attachments')}</Card.Title>
 					</Card.Header>
@@ -234,7 +234,7 @@
 			{/if}
 
 			<!-- Actions -->
-			<Card.Root>
+			<Card.Root class="gap-2">
 				<Card.Header class="pb-0">
 					<Card.Title class="text-lg">{$t('app.archive.actions')}</Card.Title>
 				</Card.Header>
@@ -253,7 +253,7 @@
 
 			<!-- Integrity Report -->
 			{#if integrityReport && integrityReport.length > 0}
-				<Card.Root>
+				<Card.Root class="gap-2">
 					<Card.Header class="pb-0">
 						<Card.Title class="text-lg">{$t('app.archive.integrity_report')}</Card.Title>
 						<Card.Description>
