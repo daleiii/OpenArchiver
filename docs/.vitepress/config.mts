@@ -74,6 +74,7 @@ export default defineConfig({
 							},
 						],
 					},
+					{ text: 'Backup and Restore', link: '/user-guides/backup' },
 					{
 						text: 'Upgrading and Migration',
 						collapsed: true,
