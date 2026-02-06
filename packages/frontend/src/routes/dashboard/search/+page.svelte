@@ -555,12 +555,8 @@
 							<div class="space-y-2">
 								<Label>{$t('app.search.filter_include_tags')}</Label>
 								<DropdownMenu.Root>
-									<DropdownMenu.Trigger asChild let:builder>
-										<Button
-											variant="outline"
-											builders={[builder]}
-											class="w-full justify-between"
-										>
+									<DropdownMenu.Trigger>
+										<Button variant="outline" class="w-full justify-between">
 											<span class="truncate">
 												{#if includeTags.length === 0}
 													{$t(
@@ -594,12 +590,8 @@
 							<div class="space-y-2">
 								<Label>{$t('app.search.filter_exclude_tags')}</Label>
 								<DropdownMenu.Root>
-									<DropdownMenu.Trigger asChild let:builder>
-										<Button
-											variant="outline"
-											builders={[builder]}
-											class="w-full justify-between"
-										>
+									<DropdownMenu.Trigger>
+										<Button variant="outline" class="w-full justify-between">
 											<span class="truncate">
 												{#if excludeTags.length === 0}
 													{$t(
