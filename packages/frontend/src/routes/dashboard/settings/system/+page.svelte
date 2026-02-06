@@ -202,41 +202,43 @@
 						value={defaultExcludedTags.join(',')}
 					/>
 					{#if availableTags.length > 0}
-						<DropdownMenu.Root>
-							<DropdownMenu.Trigger>
-								<Button
-									variant="outline"
-									class="w-full max-w-sm justify-between text-left"
-								>
-									<span class="truncate">
-										{#if defaultExcludedTags.length === 0}
-											{$t(
-												'app.system_settings.default_excluded_tags_placeholder'
-											)}
-										{:else}
-											{defaultExcludedTags.length} tag{defaultExcludedTags.length >
-											1
-												? 's'
-												: ''} selected
-										{/if}
-									</span>
-									<ChevronDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-								</Button>
-							</DropdownMenu.Trigger>
-							<DropdownMenu.Content class="max-h-64 w-56 overflow-y-auto">
-								{#each availableTags as tagItem (tagItem.tag)}
-									<DropdownMenu.CheckboxItem
-										checked={defaultExcludedTags.includes(tagItem.tag)}
-										onCheckedChange={() => toggleExcludedTag(tagItem.tag)}
+						<div class="flex">
+							<DropdownMenu.Root>
+								<DropdownMenu.Trigger>
+									<Button
+										variant="outline"
+										class="w-full max-w-sm justify-between text-left"
 									>
-										<span class="flex-1 truncate">{tagItem.tag}</span>
-										<span class="text-muted-foreground ml-2 text-xs">
-											({tagItem.count})
+										<span class="truncate">
+											{#if defaultExcludedTags.length === 0}
+												{$t(
+													'app.system_settings.default_excluded_tags_placeholder'
+												)}
+											{:else}
+												{defaultExcludedTags.length} tag{defaultExcludedTags.length >
+												1
+													? 's'
+													: ''} selected
+											{/if}
 										</span>
-									</DropdownMenu.CheckboxItem>
-								{/each}
-							</DropdownMenu.Content>
-						</DropdownMenu.Root>
+										<ChevronDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+									</Button>
+								</DropdownMenu.Trigger>
+								<DropdownMenu.Content class="max-h-64 w-56 overflow-y-auto">
+									{#each availableTags as tagItem (tagItem.tag)}
+										<DropdownMenu.CheckboxItem
+											checked={defaultExcludedTags.includes(tagItem.tag)}
+											onCheckedChange={() => toggleExcludedTag(tagItem.tag)}
+										>
+											<span class="flex-1 truncate">{tagItem.tag}</span>
+											<span class="text-muted-foreground ml-2 text-xs">
+												({tagItem.count})
+											</span>
+										</DropdownMenu.CheckboxItem>
+									{/each}
+								</DropdownMenu.Content>
+							</DropdownMenu.Root>
+						</div>
 					{:else}
 						<p class="text-muted-foreground text-sm italic">
 							{$t('app.system_settings.no_tags_available')}
