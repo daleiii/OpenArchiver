@@ -115,20 +115,32 @@
 				<Card.Content class="pt-2">
 					<dl class="text-muted-foreground space-y-2 text-sm">
 						<div class="flex gap-2">
-							<dt class="text-foreground w-12 flex-shrink-0 font-medium">{$t('app.archive.from')}:</dt>
-							<dd class="min-w-0 break-words">{email.senderEmail || email.senderName}</dd>
+							<dt class="text-foreground w-12 flex-shrink-0 font-medium">
+								{$t('app.archive.from')}:
+							</dt>
+							<dd class="min-w-0 break-words">
+								{email.senderEmail || email.senderName}
+							</dd>
 						</div>
 						<div class="flex gap-2">
-							<dt class="text-foreground w-12 flex-shrink-0 font-medium">{$t('app.archive.to')}:</dt>
+							<dt class="text-foreground w-12 flex-shrink-0 font-medium">
+								{$t('app.archive.to')}:
+							</dt>
 							<dd class="min-w-0 break-words">
-								{email.recipients.filter((r) => r.email).map((r) => r.email || r.name).join(', ') || '-'}
+								{email.recipients
+									.filter((r) => r.email)
+									.map((r) => r.email || r.name)
+									.join(', ') || '-'}
 							</dd>
 						</div>
 						{#if email.recipients.some((r) => r.email && r.name === 'cc')}
 							<div class="flex gap-2">
 								<dt class="text-foreground w-12 flex-shrink-0 font-medium">CC:</dt>
 								<dd class="min-w-0 break-words">
-									{email.recipients.filter((r) => r.name === 'cc').map((r) => r.email).join(', ')}
+									{email.recipients
+										.filter((r) => r.name === 'cc')
+										.map((r) => r.email)
+										.join(', ')}
 								</dd>
 							</div>
 						{/if}
@@ -156,18 +168,24 @@
 				<Card.Content class="pt-2">
 					<dl class="text-muted-foreground space-y-2 text-sm">
 						<div class="flex gap-2">
-							<dt class="text-foreground w-16 flex-shrink-0 font-medium">{$t('app.archive.sent')}:</dt>
+							<dt class="text-foreground w-16 flex-shrink-0 font-medium">
+								{$t('app.archive.sent')}:
+							</dt>
 							<dd>{new Date(email.sentAt).toLocaleString()}</dd>
 						</div>
 						{#if email.path}
 							<div class="flex gap-2">
-								<dt class="text-foreground w-16 flex-shrink-0 font-medium">{$t('app.archive.folder')}:</dt>
+								<dt class="text-foreground w-16 flex-shrink-0 font-medium">
+									{$t('app.archive.folder')}:
+								</dt>
 								<dd>{email.path}</dd>
 							</div>
 						{/if}
 						{#if email.tags && email.tags.length > 0}
 							<div class="flex gap-2">
-								<dt class="text-foreground w-16 flex-shrink-0 font-medium">{$t('app.archive.tags')}:</dt>
+								<dt class="text-foreground w-16 flex-shrink-0 font-medium">
+									{$t('app.archive.tags')}:
+								</dt>
 								<dd class="flex flex-wrap gap-1">
 									{#each email.tags as tag}
 										<button
@@ -185,15 +203,21 @@
 							</div>
 						{/if}
 						<div class="flex gap-2">
-							<dt class="text-foreground w-16 flex-shrink-0 font-medium">{$t('app.archive.size')}:</dt>
+							<dt class="text-foreground w-16 flex-shrink-0 font-medium">
+								{$t('app.archive.size')}:
+							</dt>
 							<dd>{formatBytes(email.sizeBytes)}</dd>
 						</div>
 						{#if email.threadId}
 							<div class="flex gap-2">
-								<dt class="text-foreground w-16 flex-shrink-0 font-medium">{$t('app.archive.thread')}:</dt>
+								<dt class="text-foreground w-16 flex-shrink-0 font-medium">
+									{$t('app.archive.thread')}:
+								</dt>
 								<dd>
 									<a
-										href="/dashboard/search?keywords=*&threadId={encodeURIComponent(email.threadId)}"
+										href="/dashboard/search?keywords=*&threadId={encodeURIComponent(
+											email.threadId
+										)}"
 										class="text-primary hover:underline"
 									>
 										{$t('app.archive.view_thread')}
@@ -217,12 +241,15 @@
 								<li class="flex items-center justify-between gap-2">
 									<span class="min-w-0 truncate text-sm">
 										{attachment.filename}
-										<span class="text-muted-foreground">({formatBytes(attachment.sizeBytes)})</span>
+										<span class="text-muted-foreground"
+											>({formatBytes(attachment.sizeBytes)})</span
+										>
 									</span>
 									<Button
 										variant="outline"
 										size="sm"
-										onclick={() => download(attachment.storagePath, attachment.filename)}
+										onclick={() =>
+											download(attachment.storagePath, attachment.filename)}
 									>
 										{$t('app.archive.download')}
 									</Button>
@@ -238,14 +265,19 @@
 				<Card.Header class="pb-0">
 					<Card.Title class="text-lg">{$t('app.archive.actions')}</Card.Title>
 				</Card.Header>
-				<Card.Content class="pt-2 space-y-2">
+				<Card.Content class="space-y-2 pt-2">
 					<Button
 						class="w-full"
-						onclick={() => download(email.storagePath, `${email.subject || 'email'}.eml`)}
+						onclick={() =>
+							download(email.storagePath, `${email.subject || 'email'}.eml`)}
 					>
 						{$t('app.archive.download_eml')}
 					</Button>
-					<Button class="w-full" variant="destructive" onclick={() => (isDeleteDialogOpen = true)}>
+					<Button
+						class="w-full"
+						variant="destructive"
+						onclick={() => (isDeleteDialogOpen = true)}
+					>
 						{$t('app.archive.delete_email')}
 					</Button>
 				</Card.Content>
@@ -255,7 +287,8 @@
 			{#if integrityReport && integrityReport.length > 0}
 				<Card.Root class="gap-2">
 					<Card.Header class="pb-0">
-						<Card.Title class="text-lg">{$t('app.archive.integrity_report')}</Card.Title>
+						<Card.Title class="text-lg">{$t('app.archive.integrity_report')}</Card.Title
+						>
 						<Card.Description>
 							<span class="mt-1">
 								{$t('app.archive.integrity_report_description')}
@@ -269,15 +302,19 @@
 							</span>
 						</Card.Description>
 					</Card.Header>
-					<Card.Content class="pt-2 space-y-2">
+					<Card.Content class="space-y-2 pt-2">
 						<ul class="space-y-2">
 							{#each integrityReport as item}
 								<li class="flex items-center justify-between">
 									<div class="flex min-w-0 flex-row items-center space-x-2">
 										{#if item.isValid}
-											<ShieldCheck class="h-4 w-4 flex-shrink-0 text-green-500" />
+											<ShieldCheck
+												class="h-4 w-4 flex-shrink-0 text-green-500"
+											/>
 										{:else}
-											<ShieldAlert class="h-4 w-4 flex-shrink-0 text-red-500" />
+											<ShieldAlert
+												class="h-4 w-4 flex-shrink-0 text-red-500"
+											/>
 										{/if}
 										<div class="min-w-0 max-w-64">
 											<p class="truncate text-sm font-medium">
@@ -300,7 +337,9 @@
 													{$t('app.archive.invalid')}
 												</Badge>
 											</HoverCard.Trigger>
-											<HoverCard.Content class="w-80 bg-gray-50 text-red-500 dark:bg-gray-800">
+											<HoverCard.Content
+												class="w-80 bg-gray-50 text-red-500 dark:bg-gray-800"
+											>
 												<p>{item.reason}</p>
 											</HoverCard.Content>
 										</HoverCard.Root>

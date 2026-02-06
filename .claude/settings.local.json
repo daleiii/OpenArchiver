@@ -1,5 +1,5 @@
 {
 	"permissions": {
-		"allow": ["WebSearch"]
+		"allow": ["WebSearch", "Bash(pnpm lint:*)", "Bash(pnpm format:*)"]
 	}
 }

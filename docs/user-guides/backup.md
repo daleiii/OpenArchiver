@@ -6,12 +6,12 @@ This guide outlines a backup strategy for Open Archiver to protect your archived
 
 Open Archiver stores data across multiple components:
 
-| Component | Contains | Backup Required? |
-|-----------|----------|------------------|
-| Storage folder | Raw .eml files and attachments | **Yes** - Primary data |
-| PostgreSQL | Metadata, config, users, audit logs | **Yes** - Critical |
-| Meilisearch | Full-text search index | Optional - Can rebuild |
-| Redis/Valkey | Job queues | No - Ephemeral |
+| Component      | Contains                            | Backup Required?       |
+| -------------- | ----------------------------------- | ---------------------- |
+| Storage folder | Raw .eml files and attachments      | **Yes** - Primary data |
+| PostgreSQL     | Metadata, config, users, audit logs | **Yes** - Critical     |
+| Meilisearch    | Full-text search index              | Optional - Can rebuild |
+| Redis/Valkey   | Job queues                          | No - Ephemeral         |
 
 ### Storage Folder (Critical)
 
@@ -23,6 +23,7 @@ The storage folder contains all raw email files (.eml) and attachments. This is 
 - **S3 storage**: `{STORAGE_S3_BUCKET}/open-archiver/`
 
 **Folder structure:**
+
 ```
 open-archiver/
 ├── {SourceName}-{SourceId}/
@@ -42,6 +43,7 @@ open-archiver/
 ### PostgreSQL Database (Critical)
 
 The database stores:
+
 - Email metadata (sender, recipients, dates, subjects, hashes)
 - Ingestion source configurations and credentials
 - User accounts and roles
@@ -68,17 +70,20 @@ docker exec openarchiver-postgres pg_dump -U openarchiver openarchiver > backup_
 ### Storage Folder Backup
 
 **Local to cloud (using rclone):**
+
 ```bash
 # Configure rclone for your cloud provider first
 rclone sync /path/to/storage/open-archiver remote:bucket/open-archiver-backup
 ```
 
 **Local to local:**
+
 ```bash
 rsync -av /path/to/storage/open-archiver /backup/location/
 ```
 
 **If using S3 storage:**
+
 ```bash
 # Enable versioning on your S3 bucket for point-in-time recovery
 aws s3api put-bucket-versioning --bucket your-bucket --versioning-configuration Status=Enabled
@@ -168,10 +173,10 @@ After restoring the database and storage, restart Open Archiver. The search inde
 
 ## Backup Frequency Recommendations
 
-| Data | Frequency | Retention |
-|------|-----------|-----------|
-| PostgreSQL | Daily | 30 days |
-| Storage folder | Daily (incremental) | Keep all |
-| Meilisearch | Weekly (optional) | 2 versions |
+| Data           | Frequency           | Retention  |
+| -------------- | ------------------- | ---------- |
+| PostgreSQL     | Daily               | 30 days    |
+| Storage folder | Daily (incremental) | Keep all   |
+| Meilisearch    | Weekly (optional)   | 2 versions |
 
 For high-volume environments, consider more frequent database backups or continuous replication.
