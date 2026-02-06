@@ -193,7 +193,7 @@
 					{#if availableTags.length > 0}
 						<DropdownMenu.Root>
 							<DropdownMenu.Trigger>
-								<Button variant="outline" class="max-w-sm justify-between">
+								<Button variant="outline" class="w-full max-w-sm justify-between text-left">
 									<span class="truncate">
 										{#if defaultExcludedTags.length === 0}
 											{$t(
