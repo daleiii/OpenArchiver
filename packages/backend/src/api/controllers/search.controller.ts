@@ -10,6 +10,17 @@ export class SearchController {
 		this.searchService = new SearchService();
 	}
 
+	public getTagsFacet = async (req: Request, res: Response): Promise<void> => {
+		try {
+			const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+			const tags = await this.searchService.getAvailableTags(limit);
+			res.status(200).json(tags);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : req.t('errors.unknown');
+			res.status(500).json({ message });
+		}
+	};
+
 	public search = async (req: Request, res: Response): Promise<void> => {
 		try {
 			const { keywords, page, limit, matchingStrategy, sort } = req.query;

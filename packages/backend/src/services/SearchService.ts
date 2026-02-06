@@ -101,26 +101,56 @@ export class SearchService {
 				return val.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 			};
 
-			const filterStrings = Object.entries(filters).map(([key, value]) => {
-				// Handle comparison operators for date range filters
-				if (key.endsWith('_gte')) {
-					const field = key.replace('_gte', '');
-					return `${field} >= ${value}`;
-				}
-				if (key.endsWith('_lte')) {
-					const field = key.replace('_lte', '');
-					return `${field} <= ${value}`;
-				}
-				// Use CONTAINS for email fields (partial matching)
-				if (partialMatchFields.includes(key) && typeof value === 'string') {
-					return `${key} CONTAINS '${escapeFilterValue(value)}'`;
-				}
-				// Standard equality filter for other fields
-				if (typeof value === 'string') {
-					return `${key} = '${escapeFilterValue(value)}'`;
-				}
-				return `${key} = ${value}`;
-			});
+			const filterStrings = Object.entries(filters)
+				.map(([key, value]) => {
+					// Handle comparison operators for date range filters
+					if (key.endsWith('_gte')) {
+						const field = key.replace('_gte', '');
+						return `${field} >= ${value}`;
+					}
+					if (key.endsWith('_lte')) {
+						const field = key.replace('_lte', '');
+						return `${field} <= ${value}`;
+					}
+					// Handle includeTags filter (OR logic - show emails with ANY of these tags)
+					if (key === 'includeTags' && typeof value === 'string') {
+						const tagList = value
+							.split(',')
+							.map((t) => t.trim())
+							.filter(Boolean);
+						if (tagList.length > 0) {
+							const tagFilters = tagList.map(
+								(t) => `tags = '${escapeFilterValue(t)}'`
+							);
+							return `(${tagFilters.join(' OR ')})`;
+						}
+						return null;
+					}
+					// Handle excludeTags filter (AND logic - hide emails with ANY of these tags)
+					if (key === 'excludeTags' && typeof value === 'string') {
+						const tagList = value
+							.split(',')
+							.map((t) => t.trim())
+							.filter(Boolean);
+						if (tagList.length > 0) {
+							const tagFilters = tagList.map(
+								(t) => `tags != '${escapeFilterValue(t)}'`
+							);
+							return `(${tagFilters.join(' AND ')})`;
+						}
+						return null;
+					}
+					// Use CONTAINS for email fields (partial matching)
+					if (partialMatchFields.includes(key) && typeof value === 'string') {
+						return `${key} CONTAINS '${escapeFilterValue(value)}'`;
+					}
+					// Standard equality filter for other fields
+					if (typeof value === 'string') {
+						return `${key} = '${escapeFilterValue(value)}'`;
+					}
+					return `${key} = ${value}`;
+				})
+				.filter(Boolean) as string[];
 			searchParams.filter = filterStrings.join(' AND ');
 		}
 
@@ -186,6 +216,23 @@ export class SearchService {
 			.map(([sender, count]) => ({ sender, count }));
 
 		return sortedSenders;
+	}
+
+	public async getAvailableTags(limit = 100): Promise<{ tag: string; count: number }[]> {
+		const index = await this.getIndex<EmailDocument>('emails');
+		const searchResults = await index.search('', {
+			facets: ['tags'],
+			limit: 0,
+		});
+
+		if (!searchResults.facetDistribution?.tags) {
+			return [];
+		}
+
+		return Object.entries(searchResults.facetDistribution.tags)
+			.sort(([, countA], [, countB]) => countB - countA)
+			.slice(0, limit)
+			.map(([tag, count]) => ({ tag, count }));
 	}
 
 	public async configureEmailIndex() {

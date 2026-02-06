@@ -13,6 +13,11 @@ export const createSearchRouter = (
 	router.use(requireAuth(authService));
 
 	router.get('/', requirePermission('search', 'archive'), searchController.search);
+	router.get(
+		'/facets/tags',
+		requirePermission('search', 'archive'),
+		searchController.getTagsFacet
+	);
 
 	return router;
 };

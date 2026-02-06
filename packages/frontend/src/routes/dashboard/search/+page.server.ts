@@ -13,6 +13,13 @@ interface SearchFilters {
 	threadId?: string;
 	tags?: string;
 	hasAttachments?: string;
+	includeTags?: string;
+	excludeTags?: string;
+}
+
+interface TagFacet {
+	tag: string;
+	count: number;
 }
 
 async function performSearch(
@@ -52,6 +59,8 @@ async function performSearch(
 		if (filters.threadId) params.set('filters[threadId]', filters.threadId);
 		if (filters.tags) params.set('filters[tags]', filters.tags);
 		if (filters.hasAttachments) params.set('filters[hasAttachments]', filters.hasAttachments);
+		if (filters.includeTags) params.set('filters[includeTags]', filters.includeTags);
+		if (filters.excludeTags) params.set('filters[excludeTags]', filters.excludeTags);
 
 		// Date filters need to be converted to timestamp comparisons
 		if (filters.dateFrom) {
@@ -117,7 +126,29 @@ export const load: PageServerLoad = async (event) => {
 		threadId: event.url.searchParams.get('threadId') || undefined,
 		tags: event.url.searchParams.get('tags') || undefined,
 		hasAttachments: event.url.searchParams.get('hasAttachments') || undefined,
+		includeTags: event.url.searchParams.get('includeTags') || undefined,
+		excludeTags: event.url.searchParams.get('excludeTags') || undefined,
 	};
 
-	return performSearch(keywords, page, limit, matchingStrategy, sort, filters, event);
+	// Fetch available tags for the filter dropdowns
+	let availableTags: TagFacet[] = [];
+	try {
+		const tagsResponse = await api('/search/facets/tags', event, { method: 'GET' });
+		if (tagsResponse.ok) {
+			availableTags = await tagsResponse.json();
+		}
+	} catch {
+		// Silently fail - tags will just be empty
+	}
+
+	const searchData = await performSearch(
+		keywords,
+		page,
+		limit,
+		matchingStrategy,
+		sort,
+		filters,
+		event
+	);
+	return { ...searchData, availableTags };
 };

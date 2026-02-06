@@ -22,13 +22,19 @@ This fork includes the following enhancements over the upstream [LogicLabs-OU/Op
 
 ### Enhanced Search
 
-- **Relevance Scoring**: Display Meilisearch ranking scores in search results
+- **Relevance Scoring**: Visual indicator showing Meilisearch ranking scores in search results
+- **Tag Filters**: Include or exclude emails by tags (e.g., hide all SPAM-tagged emails)
+- **Attachment Filter**: Filter emails with or without attachments
 - **Date Range Filters**: Filter search results by date range (from/to)
-- **Advanced Filters**: Filter by sender, recipient, CC, and BCC fields
+- **Advanced Filters**: Filter by sender, recipient, CC, and BCC fields with partial matching
 - **Sort Options**: Sort results by newest first, oldest first, or by relevance
+- **Auto-Search**: Debounced search as you type - no need to click the search button
+- **Filter Without Keywords**: Use filters alone without entering search terms
+- **Thread Navigation**: Click to view all emails in a conversation thread
 
 ### UI/UX Improvements
 
+- Redesigned email detail page with improved layout and sidebar organization
 - Improved tooltip spacing for better readability
 - Better y-axis padding on ingestion history charts
 

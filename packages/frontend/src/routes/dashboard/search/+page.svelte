@@ -5,6 +5,7 @@
 	import { Label } from '$lib/components/ui/label';
 	import * as Select from '$lib/components/ui/select';
 	import * as HoverCard from '$lib/components/ui/hover-card';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import {
 		Card,
 		CardContent,
@@ -23,6 +24,7 @@
 	import HelpCircle from 'lucide-svelte/icons/help-circle';
 	import SearchX from 'lucide-svelte/icons/search-x';
 	import X from 'lucide-svelte/icons/x';
+	import Tag from 'lucide-svelte/icons/tag';
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import { t } from '$lib/translations';
 	import * as Pagination from '$lib/components/ui/pagination/index.js';
@@ -48,6 +50,11 @@
 	let hasAttachments = $state(data.filters?.hasAttachments || '');
 	let threadId = $state(data.filters?.threadId || '');
 	let tags = $state(data.filters?.tags || '');
+	let includeTags = $state<string[]>(data.filters?.includeTags?.split(',').filter(Boolean) || []);
+	let excludeTags = $state<string[]>(data.filters?.excludeTags?.split(',').filter(Boolean) || []);
+
+	// Available tags for dropdowns
+	let availableTags = $derived(data.availableTags || []);
 
 	// UI state
 	let optionsOpen = $state(false);
@@ -97,10 +104,14 @@
 			hasAttachments,
 			threadId,
 			tags,
-		].filter(Boolean).length
+		].filter(Boolean).length +
+			includeTags.length +
+			excludeTags.length
 	);
 	const hasActiveFilters = $derived(activeFilterCount > 0);
-	const hasHiddenFilters = $derived(Boolean(threadId || tags));
+	const hasHiddenFilters = $derived(
+		Boolean(threadId || tags || includeTags.length > 0 || excludeTags.length > 0)
+	);
 
 	let isMounted = $state(false);
 
@@ -159,6 +170,8 @@
 		if (hasAttachments) params.set('hasAttachments', hasAttachments);
 		if (threadId) params.set('threadId', threadId);
 		if (tags) params.set('tags', tags);
+		if (includeTags.length > 0) params.set('includeTags', includeTags.join(','));
+		if (excludeTags.length > 0) params.set('excludeTags', excludeTags.join(','));
 		return `/dashboard/search?${params.toString()}`;
 	}
 
@@ -177,6 +190,24 @@
 		hasAttachments = '';
 		threadId = '';
 		tags = '';
+		includeTags = [];
+		excludeTags = [];
+	}
+
+	function toggleIncludeTag(tag: string) {
+		if (includeTags.includes(tag)) {
+			includeTags = includeTags.filter((t) => t !== tag);
+		} else {
+			includeTags = [...includeTags, tag];
+		}
+	}
+
+	function toggleExcludeTag(tag: string) {
+		if (excludeTags.includes(tag)) {
+			excludeTags = excludeTags.filter((t) => t !== tag);
+		} else {
+			excludeTags = [...excludeTags, tag];
+		}
 	}
 
 	// Debounced auto-search when keywords or filters change
@@ -195,6 +226,8 @@
 			hasAttachments,
 			threadId,
 			tags,
+			includeTags,
+			excludeTags,
 		];
 		// Use void to ensure we're reading the values for reactivity
 		void searchValues;
@@ -312,10 +345,11 @@
 			</Button>
 		</div>
 
-		<!-- Active hidden filters (threadId, tags) -->
+		<!-- Active hidden filters (threadId, tags, includeTags, excludeTags) -->
 		{#if hasHiddenFilters}
 			<div class="flex flex-wrap items-center gap-2">
-				<span class="text-muted-foreground text-sm">{$t('app.search.active_filters')}:</span>
+				<span class="text-muted-foreground text-sm">{$t('app.search.active_filters')}:</span
+				>
 				{#if threadId}
 					<span
 						class="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm"
@@ -352,6 +386,40 @@
 						</button>
 					</span>
 				{/if}
+				{#each includeTags as tag}
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-3 py-1 text-sm text-green-700 dark:text-green-400"
+					>
+						<Tag class="h-3 w-3" />
+						{tag}
+						<button
+							type="button"
+							onclick={() => {
+								includeTags = includeTags.filter((t) => t !== tag);
+							}}
+							class="rounded-full p-0.5 hover:bg-green-500/20"
+						>
+							<X class="h-3 w-3" />
+						</button>
+					</span>
+				{/each}
+				{#each excludeTags as tag}
+					<span
+						class="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-3 py-1 text-sm text-red-700 dark:text-red-400"
+					>
+						<Tag class="h-3 w-3" />
+						<span class="line-through">{tag}</span>
+						<button
+							type="button"
+							onclick={() => {
+								excludeTags = excludeTags.filter((t) => t !== tag);
+							}}
+							class="rounded-full p-0.5 hover:bg-red-500/20"
+						>
+							<X class="h-3 w-3" />
+						</button>
+					</span>
+				{/each}
 			</div>
 		{/if}
 
@@ -482,7 +550,89 @@
 							</Select.Root>
 						</div>
 
-						<!-- Row 3: Clear button -->
+						<!-- Row 3: Tag filters -->
+						{#if availableTags.length > 0}
+							<div class="space-y-2">
+								<Label>{$t('app.search.filter_include_tags')}</Label>
+								<DropdownMenu.Root>
+									<DropdownMenu.Trigger asChild let:builder>
+										<Button
+											variant="outline"
+											builders={[builder]}
+											class="w-full justify-between"
+										>
+											<span class="truncate">
+												{#if includeTags.length === 0}
+													{$t(
+														'app.search.filter_include_tags_placeholder'
+													)}
+												{:else}
+													{includeTags.length} tag{includeTags.length > 1
+														? 's'
+														: ''} selected
+												{/if}
+											</span>
+											<ChevronDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+										</Button>
+									</DropdownMenu.Trigger>
+									<DropdownMenu.Content class="max-h-64 w-56 overflow-y-auto">
+										{#each availableTags as tagItem (tagItem.tag)}
+											<DropdownMenu.CheckboxItem
+												checked={includeTags.includes(tagItem.tag)}
+												onCheckedChange={() =>
+													toggleIncludeTag(tagItem.tag)}
+											>
+												<span class="flex-1 truncate">{tagItem.tag}</span>
+												<span class="text-muted-foreground ml-2 text-xs">
+													({tagItem.count})
+												</span>
+											</DropdownMenu.CheckboxItem>
+										{/each}
+									</DropdownMenu.Content>
+								</DropdownMenu.Root>
+							</div>
+							<div class="space-y-2">
+								<Label>{$t('app.search.filter_exclude_tags')}</Label>
+								<DropdownMenu.Root>
+									<DropdownMenu.Trigger asChild let:builder>
+										<Button
+											variant="outline"
+											builders={[builder]}
+											class="w-full justify-between"
+										>
+											<span class="truncate">
+												{#if excludeTags.length === 0}
+													{$t(
+														'app.search.filter_exclude_tags_placeholder'
+													)}
+												{:else}
+													{excludeTags.length} tag{excludeTags.length > 1
+														? 's'
+														: ''} excluded
+												{/if}
+											</span>
+											<ChevronDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+										</Button>
+									</DropdownMenu.Trigger>
+									<DropdownMenu.Content class="max-h-64 w-56 overflow-y-auto">
+										{#each availableTags as tagItem (tagItem.tag)}
+											<DropdownMenu.CheckboxItem
+												checked={excludeTags.includes(tagItem.tag)}
+												onCheckedChange={() =>
+													toggleExcludeTag(tagItem.tag)}
+											>
+												<span class="flex-1 truncate">{tagItem.tag}</span>
+												<span class="text-muted-foreground ml-2 text-xs">
+													({tagItem.count})
+												</span>
+											</DropdownMenu.CheckboxItem>
+										{/each}
+									</DropdownMenu.Content>
+								</DropdownMenu.Root>
+							</div>
+						{/if}
+
+						<!-- Row 4: Clear button -->
 						<div class="col-span-4 flex items-end justify-end">
 							{#if hasActiveFilters}
 								<Button type="button" variant="outline" onclick={clearFilters}>
