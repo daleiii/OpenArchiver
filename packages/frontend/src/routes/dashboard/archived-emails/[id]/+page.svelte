@@ -194,6 +194,17 @@
 			</Card.Root>
 		</div>
 		<div class="col-span-3 space-y-6 md:col-span-1">
+			{#if email.thread && email.thread.length > 1}
+				<Card.Root>
+					<Card.Header>
+						<Card.Title>{$t('app.archive.email_thread')}</Card.Title>
+					</Card.Header>
+					<Card.Content>
+						<EmailThread thread={email.thread} currentEmailId={email.id} />
+					</Card.Content>
+				</Card.Root>
+			{/if}
+
 			<Card.Root>
 				<Card.Header>
 					<Card.Title>{$t('app.archive.actions')}</Card.Title>
@@ -279,17 +290,6 @@
 						{$t('app.archive.integrity_check_failed_message')}
 					</Alert.Description>
 				</Alert.Root>
-			{/if}
-
-			{#if email.thread && email.thread.length > 1}
-				<Card.Root>
-					<Card.Header>
-						<Card.Title>{$t('app.archive.email_thread')}</Card.Title>
-					</Card.Header>
-					<Card.Content>
-						<EmailThread thread={email.thread} currentEmailId={email.id} />
-					</Card.Content>
-				</Card.Root>
 			{/if}
 		</div>
 	</div>
