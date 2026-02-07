@@ -119,17 +119,17 @@
 		isMounted = true;
 	});
 
-	// Auto-search when sort or limit changes (only if results exist)
+	// Auto-search when sort or limit changes (if we have keywords or active filters)
 	function handleSortChange(newSort: string) {
 		sort = newSort as SearchSort;
-		if (searchResult && keywords) {
+		if (keywords || hasActiveFilters) {
 			goto(buildSearchUrl(1), { keepFocus: true });
 		}
 	}
 
 	function handleLimitChange(newLimit: string | number) {
 		limit = typeof newLimit === 'string' ? parseInt(newLimit, 10) : newLimit;
-		if (searchResult && keywords) {
+		if (keywords || hasActiveFilters) {
 			goto(buildSearchUrl(1), { keepFocus: true });
 		}
 	}
@@ -214,7 +214,7 @@
 	let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 	$effect(() => {
-		// Track all searchable values
+		// Track all searchable values including sort/limit
 		const searchValues = [
 			keywords,
 			filterFrom,
@@ -228,6 +228,8 @@
 			tags,
 			includeTags,
 			excludeTags,
+			sort,
+			limit,
 		];
 		// Use void to ensure we're reading the values for reactivity
 		void searchValues;
