@@ -52,6 +52,7 @@
 			"ingestion_sources": "Ingestion Sources",
 			"bulk_actions": "Bulk Actions",
 			"force_sync": "Force Sync",
+			"reconnect": "Reconnect",
 			"delete": "Delete",
 			"create_new": "Create New",
 			"name": "Name",

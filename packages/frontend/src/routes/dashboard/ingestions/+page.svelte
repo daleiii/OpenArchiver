@@ -488,6 +488,11 @@
 										<DropdownMenu.Item onclick={() => handleSync(source.id)}
 											>{$t('app.ingestions.force_sync')}</DropdownMenu.Item
 										>
+										{#if source.provider === 'gmail'}
+											<DropdownMenu.Item onclick={() => startGmailAuth(source.id)}
+												>{$t('app.ingestions.reconnect')}</DropdownMenu.Item
+											>
+										{/if}
 										<DropdownMenu.Separator />
 										<DropdownMenu.Item
 											class="text-red-600"
