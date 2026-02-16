@@ -15,9 +15,10 @@ export default async (job: Job<IInitialImportJob>) => {
 			throw new Error(`Ingestion source with ID ${ingestionSourceId} not found`);
 		}
 
+		const isReconnect = source.syncState !== null;
 		await IngestionService.update(ingestionSourceId, {
 			status: 'importing',
-			lastSyncStatusMessage: 'Starting initial import...',
+			lastSyncStatusMessage: isReconnect ? 'Reconnecting...' : 'Starting initial import...',
 		});
 
 		const connector = EmailProviderFactory.createConnector(source);
