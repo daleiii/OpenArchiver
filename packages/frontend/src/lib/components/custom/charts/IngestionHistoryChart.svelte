@@ -39,6 +39,7 @@
 		labels={{}}
 		props={{
 			xAxis: {
+				ticks: data.map((d) => d.date),
 				format: (d) =>
 					new Date(d).toLocaleDateString(undefined, {
 						month: 'short',
