@@ -45,6 +45,7 @@
 		{ value: 'pt', label: '🇵🇹 Português' },
 		{ value: 'nl', label: '🇳🇱 Nederlands' },
 		{ value: 'el', label: '🇬🇷 Ελληνικά' },
+		{ value: 'bg', label: '🇧🇬 български' },
 		{ value: 'ja', label: '🇯🇵 日本語' },
 	];
 
