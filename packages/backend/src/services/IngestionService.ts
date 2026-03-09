@@ -502,16 +502,32 @@ export class IngestionService {
 					let storagePath: string;
 
 					if (existingAttachment) {
-						// If it exists, reuse the storage path and don't save the file again
-						storagePath = existingAttachment.storagePath;
-						logger.info(
-							{
-								attachmentHash,
-								ingestionSourceId: source.id,
-								reusedPath: storagePath,
-							},
-							'Reusing existing attachment file for deduplication.'
-						);
+						// Check if the file actually exists on disk (may have been deleted)
+						const fileExists = await storage.exists(existingAttachment.storagePath);
+						if (fileExists) {
+							// Reuse the storage path
+							storagePath = existingAttachment.storagePath;
+							logger.info(
+								{
+									attachmentHash,
+									ingestionSourceId: source.id,
+									reusedPath: storagePath,
+								},
+								'Reusing existing attachment file for deduplication.'
+							);
+						} else {
+							// File was deleted, save it again at the same path
+							storagePath = existingAttachment.storagePath;
+							await storage.put(storagePath, attachmentBuffer);
+							logger.info(
+								{
+									attachmentHash,
+									ingestionSourceId: source.id,
+									restoredPath: storagePath,
+								},
+								'Restored missing attachment file.'
+							);
+						}
 					} else {
 						// If it's a new attachment, create a unique path and save it
 						const uniqueId = randomUUID().slice(0, 7);
