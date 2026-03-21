@@ -12,7 +12,6 @@ import {
 	varchar,
 } from 'drizzle-orm/pg-core';
 import { archivedEmails } from './archived-emails';
-import { custodians } from './custodians';
 import { users } from './users';
 
 // --- Enums ---
@@ -33,6 +32,11 @@ export const retentionPolicies = pgTable('retention_policies', {
 	actionOnExpiry: retentionActionEnum('action_on_expiry').notNull(),
 	isEnabled: boolean('is_enabled').notNull().default(true),
 	conditions: jsonb('conditions'),
+	/**
+	 * Array of ingestion source UUIDs this policy is restricted to.
+	 * null means the policy applies to all ingestion sources.
+	 */
+	ingestionScope: jsonb('ingestion_scope').$type<string[] | null>().default(null),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -42,21 +46,24 @@ export const retentionLabels = pgTable('retention_labels', {
 	name: varchar('name', { length: 255 }).notNull(),
 	retentionPeriodDays: integer('retention_period_days').notNull(),
 	description: text('description'),
+	isDisabled: boolean('is_disabled').notNull().default(false),
 	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const emailRetentionLabels = pgTable('email_retention_labels', {
-	emailId: uuid('email_id')
-		.references(() => archivedEmails.id, { onDelete: 'cascade' })
-		.notNull(),
-	labelId: uuid('label_id')
-		.references(() => retentionLabels.id, { onDelete: 'cascade' })
-		.notNull(),
-	appliedAt: timestamp('applied_at', { withTimezone: true }).notNull().defaultNow(),
-	appliedByUserId: uuid('applied_by_user_id').references(() => users.id),
-}, (t) => [
-	primaryKey({ columns: [t.emailId, t.labelId] }),
-]);
+export const emailRetentionLabels = pgTable(
+	'email_retention_labels',
+	{
+		emailId: uuid('email_id')
+			.references(() => archivedEmails.id, { onDelete: 'cascade' })
+			.notNull(),
+		labelId: uuid('label_id')
+			.references(() => retentionLabels.id, { onDelete: 'cascade' })
+			.notNull(),
+		appliedAt: timestamp('applied_at', { withTimezone: true }).notNull().defaultNow(),
+		appliedByUserId: uuid('applied_by_user_id').references(() => users.id),
+	},
+	(t) => [primaryKey({ columns: [t.emailId, t.labelId] })]
+);
 
 export const retentionEvents = pgTable('retention_events', {
 	id: uuid('id').defaultRandom().primaryKey(),
@@ -97,10 +104,10 @@ export const emailLegalHolds = pgTable(
 		legalHoldId: uuid('legal_hold_id')
 			.references(() => legalHolds.id, { onDelete: 'cascade' })
 			.notNull(),
+		appliedAt: timestamp('applied_at', { withTimezone: true }).notNull().defaultNow(),
+		appliedByUserId: uuid('applied_by_user_id').references(() => users.id),
 	},
-	(t) => [
-		primaryKey({ columns: [t.emailId, t.legalHoldId] }),
-	],
+	(t) => [primaryKey({ columns: [t.emailId, t.legalHoldId] })]
 );
 
 export const exportJobs = pgTable('export_jobs', {
